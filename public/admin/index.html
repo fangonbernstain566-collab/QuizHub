@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QuizHub — Admin</title>
+<link rel="stylesheet" href="/shared/shared.css" />
+<style>
+  #scoringGrid .answer-tile input { width: 80px; }
+  #teamsBody input[type="password"] { width: 130px; display: inline-block; }
+  #teamsBody .row { flex-wrap: nowrap; }
+  #toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    background: var(--danger); color: #2b0a0a; padding: 10px 16px; border-radius: 10px;
+    font-weight: 700; display: none; max-width: 90vw; text-align: center;
+  }
+  .control-bar { position: sticky; top: 0; z-index: 5; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>QuizHub — Game Master</h1>
+
+  <div class="card control-bar">
+    <div class="row" style="justify-content: space-between;">
+      <div>Phase: <span class="badge" id="phaseBadge">—</span></div>
+      <div id="currentQuestionLabel" class="muted"></div>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button id="startAnsweringBtn" disabled>Start Answering</button>
+      <button id="revealBtn" disabled>Reveal Answers</button>
+      <button id="finalizeBtn" disabled>Finalize Scoring</button>
+      <button class="secondary" id="nextQuestionBtn" disabled>Next Round</button>
+    </div>
+  </div>
+
+  <div class="card" id="startQuestionCard">
+    <h2>Start Question</h2>
+    <p class="muted">Questions are narrated aloud — the server just tracks the round/timer/answers.</p>
+    <div class="row">
+      <input type="number" id="startRound" placeholder="Round #" value="1" min="1" style="max-width:110px;" />
+      <input type="number" id="startTime" placeholder="Time limit (sec)" value="30" min="5" style="max-width:160px;" />
+      <button id="startQuestionBtn">Start Question</button>
+    </div>
+  </div>
+
+  <div class="card" id="scoringCard" style="display:none;">
+    <h2>Score this question</h2>
+    <div class="grid" id="scoringGrid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Teams</h2>
+    <div class="row">
+      <input type="text" id="newTeamName" placeholder="Team name" maxlength="40" />
+      <input type="text" id="newTeamPassword" placeholder="Password (4+ chars)" />
+      <button id="addTeamBtn">Add team</button>
+    </div>
+    <table style="margin-top:12px;">
+      <thead><tr><th>Team</th><th>Status</th><th>Players</th><th>Reset password</th></tr></thead>
+      <tbody id="teamsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Scoreboard</h2>
+    <table>
+      <thead><tr><th>Team</th><th>Score</th></tr></thead>
+      <tbody id="scoreboardBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

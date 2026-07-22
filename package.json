@@ -1,0 +1,16 @@
+{
+  "name": "quizhub",
+  "version": "1.0.0",
+  "description": "LAN trivia game server: admin, display and phone play clients synced over Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
