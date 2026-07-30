@@ -7,8 +7,6 @@
 <link rel="stylesheet" href="/shared/shared.css" />
 <style>
   #scoringGrid .answer-tile input { width: 80px; }
-  #teamsBody input[type="password"] { width: 130px; display: inline-block; }
-  #teamsBody .row { flex-wrap: nowrap; }
   #toast {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
     background: var(--danger); color: #2b0a0a; padding: 10px 16px; border-radius: 10px;
@@ -53,11 +51,10 @@
     <h2>Teams</h2>
     <div class="row">
       <input type="text" id="newTeamName" placeholder="Team name" maxlength="40" />
-      <input type="text" id="newTeamPassword" placeholder="Password (4+ chars)" />
       <button id="addTeamBtn">Add team</button>
     </div>
     <table style="margin-top:12px;">
-      <thead><tr><th>Team</th><th>Status</th><th>Players</th><th>Reset password</th></tr></thead>
+      <thead><tr><th>Team</th><th>Status</th><th>Players</th></tr></thead>
       <tbody id="teamsBody"></tbody>
     </table>
   </div>

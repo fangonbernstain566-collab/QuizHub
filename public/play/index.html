@@ -6,10 +6,8 @@
 <title>QuizHub — Play</title>
 <link rel="stylesheet" href="/shared/shared.css" />
 <style>
-  #joinScreen .teams-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
-  #joinScreen .team-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--panel-light); padding: 10px; border-radius: 10px; }
-  #joinScreen .team-row .team-name { font-weight: 700; flex: 1 1 100%; }
-  #joinScreen .team-row input { flex: 1 1 140px; }
+  #joinScreen .form-group { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  #joinScreen input { width: 100%; box-sizing: border-box; }
   #gameScreen { display: none; }
   #questionText { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
   #status { min-height: 24px; }
@@ -25,17 +23,13 @@
   <h1>QuizHub</h1>
 
   <div id="joinScreen" class="card">
-    <h2>Log in to your team</h2>
-    <p class="muted">Pick your team, enter the password the game master gave you, and type your own name.</p>
-    <div class="row">
-      <input type="text" id="playerName" placeholder="Your name" maxlength="30" />
-    </div>
-    <div id="teamsList" class="teams-list"></div>
-    <h3 style="margin-top:20px;">New team</h3>
-    <div class="row">
-      <input type="text" id="newTeamName" placeholder="Team name" maxlength="40" />
-      <input type="text" id="newTeamPassword" placeholder="Choose a password (4+ chars)" />
-      <button id="createTeamBtn">Create team</button>
+    <h2>Join Your Team</h2>
+    <p class="muted">Enter your name and the team name given to you by the game master.</p>
+    
+    <div class="form-group">
+      <input type="text" id="playerName" placeholder="Your Name" maxlength="30" autocomplete="off" />
+      <input type="text" id="teamName" placeholder="Team Name" maxlength="40" autocomplete="off" />
+      <button id="joinBtn">Join Game</button>
     </div>
   </div>
 

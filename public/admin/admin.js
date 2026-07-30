@@ -16,7 +16,6 @@ const scoringCard = document.getElementById('scoringCard');
 const scoringGrid = document.getElementById('scoringGrid');
 
 const newTeamName = document.getElementById('newTeamName');
-const newTeamPassword = document.getElementById('newTeamPassword');
 const addTeamBtn = document.getElementById('addTeamBtn');
 const teamsBody = document.getElementById('teamsBody');
 
@@ -44,11 +43,9 @@ socket.on('state:update', (state) => {
 
 addTeamBtn.onclick = () => {
   const name = newTeamName.value.trim();
-  const password = newTeamPassword.value;
   if (!name) return;
-  socket.emit('admin:createTeam', { name, password });
+  socket.emit('admin:createTeam', { name });
   newTeamName.value = '';
-  newTeamPassword.value = '';
 };
 
 // ---------------- Start Question ----------------
@@ -127,24 +124,7 @@ function renderTeams(teams) {
       ? t.players.map((p) => `${p.name}${p.connected ? '' : ' (offline)'}`).join(', ')
       : '—';
 
-    const tdReset = document.createElement('td');
-    const row = document.createElement('div');
-    row.className = 'row';
-    const pwInput = document.createElement('input');
-    pwInput.type = 'password';
-    pwInput.placeholder = 'New password';
-    const resetBtn = document.createElement('button');
-    resetBtn.className = 'secondary';
-    resetBtn.textContent = 'Set';
-    resetBtn.onclick = () => {
-      if (!pwInput.value) return;
-      socket.emit('admin:setTeamPassword', { teamId: t.id, password: pwInput.value });
-      pwInput.value = '';
-    };
-    row.append(pwInput, resetBtn);
-    tdReset.appendChild(row);
-
-    tr.append(tdName, tdStatus, tdPlayers, tdReset);
+    tr.append(tdName, tdStatus, tdPlayers);
     teamsBody.appendChild(tr);
   }
 }

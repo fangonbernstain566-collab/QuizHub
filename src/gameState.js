@@ -29,7 +29,7 @@ class GameManager {
     this.io = io;
     this.revealTimer = null;
 
-    // socket.id -> { role, teamId }
+    // socket.id -> { role, teamId, playerId }
     this.sockets = new Map();
     // teamId -> Set<socket.id>, tracks which teams have a live connection
     this.teamSockets = new Map();
@@ -39,9 +39,7 @@ class GameManager {
     this.currentQuestionId = row.current_question_id;
     this.timerEndAt = row.timer_end_at;
 
-    // A server restart mid-countdown loses the in-memory setTimeout; fall back
-    // to a safe resumable phase rather than leaving an ANSWERING phase that
-    // will never auto-reveal.
+    // Fallback if server restarted mid-countdown
     if (this.phase === PHASES.ANSWERING) {
       this.phase = PHASES.ASK_QUESTION;
       this.timerEndAt = null;
@@ -65,27 +63,22 @@ class GameManager {
     name = String(name || '').trim();
     if (!name) throw new Error('Team name required');
     if (name.length > 40) throw new Error('Team name too long');
-    password = String(password || '');
-    if (password.length < 4) throw new Error('Password must be at least 4 characters');
-    const existing = this.db.prepare('SELECT id FROM teams WHERE name = ?').get(name);
+    
+    // Optional password default for admin creation
+    password = String(password || '1234');
+    
+    const existing = this.db.prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?)').get(name);
     if (existing) throw new Error('Team name already taken');
+    
     const token = crypto.randomUUID();
     const passwordHash = hashPassword(password);
     const info = this.db
       .prepare('INSERT INTO teams (name, password_hash, token, created_at) VALUES (?, ?, ?, ?)')
       .run(name, passwordHash, token, Date.now());
+      
     const teamId = Number(info.lastInsertRowid);
     this.broadcastState();
     return { id: teamId, name, token };
-  }
-
-  loginTeam(teamId, password) {
-    const team = this.getTeamById(teamId);
-    if (!team) throw new Error('Team not found');
-    if (!verifyPassword(String(password || ''), team.password_hash)) throw new Error('Incorrect password');
-    const token = crypto.randomUUID();
-    this.db.prepare('UPDATE teams SET token = ? WHERE id = ?').run(token, team.id);
-    return { id: team.id, name: team.name, token };
   }
 
   setTeamPassword(teamId, newPassword) {
@@ -122,10 +115,11 @@ class GameManager {
     return this.db.prepare('SELECT * FROM teams WHERE id = ?').get(id);
   }
 
+  getTeamByName(name) {
+    return this.db.prepare('SELECT * FROM teams WHERE LOWER(name) = LOWER(?)').get(String(name).trim());
+  }
+
   // ---------------- Players ----------------
-  // A player is a named individual within a team. Joining still requires the
-  // team password; the player name just identifies who on the team is on
-  // which device (answers/scores stay tracked per team).
 
   createPlayer(teamId, name) {
     const team = this.getTeamById(teamId);
@@ -153,9 +147,6 @@ class GameManager {
   }
 
   // ---------------- Questions ----------------
-  // Questions are narrated aloud by the game master — the server only tracks
-  // round/question numbers and timing so answers and scores have somewhere
-  // to attach.
 
   createQuestion(roundNumber, timeLimitSeconds) {
     roundNumber = Number(roundNumber) || 1;
@@ -175,8 +166,7 @@ class GameManager {
     return this.db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
   }
 
-  // ---------------- Game flow (state machine) ----------------
-  // ASK_QUESTION -> ANSWERING (timer running) -> REVEALED -> SCORED -> ASK_QUESTION (next)
+  // ---------------- Game Flow ----------------
 
   startQuestion(roundNumber, timeLimitSeconds) {
     if (this.phase !== PHASES.IDLE) throw new Error('Finish the current question before starting a new one');
@@ -279,8 +269,7 @@ class GameManager {
 
   handleConnection(socket) {
     socket.on('identify', (payload = {}) => this.onIdentify(socket, payload));
-    socket.on('play:createTeam', (payload = {}) => this.onCreateTeam(socket, payload));
-    socket.on('play:selectTeam', (payload = {}) => this.onSelectTeam(socket, payload));
+    socket.on('play:join', (payload = {}) => this.onPlayJoin(socket, payload));
     socket.on('play:submitAnswer', (payload = {}) => this.onSubmitAnswer(socket, payload));
 
     socket.on('admin:createTeam', (payload = {}) =>
@@ -315,12 +304,8 @@ class GameManager {
   onIdentify(socket, { role, token }) {
     this.sockets.set(socket.id, { role, teamId: null });
 
-    if (role === 'admin') {
-      socket.join('admins');
-    }
-    if (role === 'display') {
-      socket.join('displays');
-    }
+    if (role === 'admin') socket.join('admins');
+    if (role === 'display') socket.join('displays');
 
     if (role === 'play') {
       const player = token ? this.getPlayerByToken(token) : null;
@@ -329,12 +314,45 @@ class GameManager {
         this.attachPlayer(socket, player.id, team.id);
         socket.emit('play:joined', { teamId: team.id, teamName: team.name, playerId: player.id, playerName: player.name, token: player.token });
         this.sendMyAnswer(socket, team.id);
-      } else {
-        socket.emit('teams:needSelection', { teams: this.listTeams() });
       }
     }
 
     socket.emit('state:update', this.getPublicState());
+  }
+
+  // --- NEW STREAMLINED JOIN HANDLER ---
+  onPlayJoin(socket, { playerName, teamName }) {
+    try {
+      playerName = String(playerName || '').trim();
+      teamName = String(teamName || '').trim();
+
+      if (!playerName || !teamName) {
+        return socket.emit('play:joinError', 'Please enter both your name and team name.');
+      }
+
+      // Check if team exists in database (registered by admin)
+      const team = this.getTeamByName(teamName);
+      if (!team) {
+        return socket.emit('play:joinError', `Team "${teamName}" does not exist. Please ask the Game Master to create it.`);
+      }
+
+      // Create player record for this valid team
+      const player = this.createPlayer(team.id, playerName);
+
+      this.attachPlayer(socket, player.id, team.id);
+      socket.emit('play:joined', {
+        teamId: team.id,
+        teamName: team.name,
+        playerId: player.id,
+        playerName: player.name,
+        token: player.token
+      });
+
+      this.sendMyAnswer(socket, team.id);
+      this.broadcastState();
+    } catch (err) {
+      socket.emit('play:joinError', err.message);
+    }
   }
 
   attachPlayer(socket, playerId, teamId) {
@@ -357,31 +375,6 @@ class GameManager {
     socket.emit('play:myAnswer', { answerText: row ? row.answer_text : null });
   }
 
-  onCreateTeam(socket, { name, password, playerName }) {
-    try {
-      const team = this.createTeam(name, password);
-      const player = this.createPlayer(team.id, playerName);
-      this.attachPlayer(socket, player.id, team.id);
-      socket.emit('play:joined', { teamId: team.id, teamName: team.name, playerId: player.id, playerName: player.name, token: player.token });
-      socket.emit('state:update', this.getPublicState());
-    } catch (err) {
-      socket.emit('error', { message: err.message });
-    }
-  }
-
-  onSelectTeam(socket, { teamId, password, playerName }) {
-    try {
-      const team = this.loginTeam(teamId, password);
-      const player = this.createPlayer(team.id, playerName);
-      this.attachPlayer(socket, player.id, team.id);
-      socket.emit('play:joined', { teamId: team.id, teamName: team.name, playerId: player.id, playerName: player.name, token: player.token });
-      this.sendMyAnswer(socket, team.id);
-      socket.emit('state:update', this.getPublicState());
-    } catch (err) {
-      socket.emit('error', { message: err.message });
-    }
-  }
-
   onSubmitAnswer(socket, { answerText }) {
     const meta = this.sockets.get(socket.id);
     if (!meta || !meta.teamId) return socket.emit('error', { message: 'Join a team first' });
@@ -401,7 +394,7 @@ class GameManager {
     this.broadcastState();
   }
 
-  // ---------------- State broadcasting ----------------
+  // ---------------- State Broadcasting ----------------
 
   connectedTeamIds() {
     const ids = new Set();
