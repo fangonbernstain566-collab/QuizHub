@@ -240,6 +240,7 @@ class GameManager {
       .run(this.currentQuestionId, teamId, points);
     this.broadcastState();
   }
+  
 
   finalizeScoring() {
     if (this.phase !== PHASES.REVEALED && this.phase !== PHASES.SCORED) {

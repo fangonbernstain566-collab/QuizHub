@@ -10,6 +10,8 @@ const timerEl = document.getElementById('timer');
 const progressBadge = document.getElementById('progressBadge');
 const revealGrid = document.getElementById('revealGrid');
 const scoreboardBody = document.getElementById('scoreboardBody');
+const miniLeaderboardBody =
+    document.getElementById("miniLeaderboardBody");
 
 let tickHandle = null;
 
@@ -78,6 +80,23 @@ function renderScoreboard(scoreboard) {
     tr.innerHTML = `<td>${escapeHtml(row.teamName)}</td><td>${row.total}</td>`;
     scoreboardBody.appendChild(tr);
   }
+  miniLeaderboardBody.innerHTML = "";
+
+scoreboard.slice(0,5).forEach((row,index)=>{
+
+    const div = document.createElement("div");
+
+    div.className = "mini-row";
+
+    div.innerHTML = `
+        <span>${index+1}</span>
+        <span class="mini-team">${row.teamName}</span>
+        <span class="mini-score">${row.total}</span>
+    `;
+
+    miniLeaderboardBody.appendChild(div);
+
+});
 }
 
 function startTicking(timerEndAt) {
