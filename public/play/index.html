@@ -84,6 +84,21 @@
   #phaseBadge { font-size: 13px; padding: 6px 14px; }
   #timer { font-size: 3.5rem; }
 
+  .question-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  #roundLabel {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  #difficultyBadge { font-size: 11px; padding: 4px 10px; }
+
   #questionText {
     font-size: 1.6rem;
     font-weight: 700;
@@ -146,6 +161,10 @@
         <span class="timer" id="timer"></span>
       </div>
 
+      <div class="question-meta" id="questionMeta" style="display: none;">
+        <span id="roundLabel"></span>
+        <span class="badge" id="difficultyBadge"></span>
+      </div>
       <div id="questionText" class="muted">Waiting for the host to start a question…</div>
       <div id="status"></div>
 

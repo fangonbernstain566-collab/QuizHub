@@ -5,13 +5,17 @@ const questionCard = document.getElementById('questionCard');
 const revealCard = document.getElementById('revealCard');
 const scoreboardCard = document.getElementById('scoreboardCard');
 const roundLabel = document.getElementById('roundLabel');
+const difficultyBadge = document.getElementById('difficultyBadge');
 const questionText = document.getElementById('questionText');
+const statusLine = document.getElementById('statusLine');
 const timerEl = document.getElementById('timer');
 const progressBadge = document.getElementById('progressBadge');
 const revealGrid = document.getElementById('revealGrid');
 const scoreboardBody = document.getElementById('scoreboardBody');
-const miniLeaderboardBody =
-    document.getElementById("miniLeaderboardBody");
+const floatingLeaderboard = document.getElementById('floatingLeaderboard');
+const floatingLeaderboardBody = document.getElementById('floatingLeaderboardBody');
+
+const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
 let tickHandle = null;
 
@@ -32,42 +36,85 @@ function render(state) {
   } else if (phase === 'ASK_QUESTION' || phase === 'ANSWERING') {
     questionCard.style.display = 'block';
     roundLabel.textContent = `Round ${question.roundNumber} — Question ${question.questionNumber}`;
-    questionText.textContent = phase === 'ANSWERING' ? 'Answer on your phones!' : 'Get ready…';
+    difficultyBadge.textContent = question.difficulty
+      ? `${DIFFICULTY_LABEL[question.difficulty]} · ${question.points} pts`
+      : '';
+    difficultyBadge.className = `badge diff-${question.difficulty || ''}`;
+
+    // The actual question, always shown once it's live
+    questionText.textContent = question.text || '';
+
+    statusLine.textContent = phase === 'ANSWERING'
+      ? 'Answer on your phones!'
+      : 'Get ready…';
+
     progressBadge.textContent = `${answeredTeamIds.length} / ${teams.length} teams answered`;
 
     if (phase === 'ANSWERING' && timerEndAt) {
       startTicking(timerEndAt);
     } else {
       stopTicking();
-      timerEl.textContent = 'Get ready…';
+      timerEl.textContent = '';
     }
   } else if (phase === 'REVEALED' || phase === 'SCORED') {
     revealCard.style.display = 'block';
     stopTicking();
-    renderReveal(reveal || []);
+    renderReveal(reveal || [], phase);
   }
 
+  // The big centered scoreboard only makes sense on the idle screen — once a
+  // question is live (or being revealed), it scrolls off screen, so swap to
+  // a small pinned panel in the corner instead.
+  const isIdle = phase === 'IDLE' || !question;
+  scoreboardCard.style.display = isIdle ? 'block' : 'none';
+  floatingLeaderboard.style.display = isIdle ? 'none' : 'block';
+
   renderScoreboard(scoreboard || []);
+  renderFloatingLeaderboard(scoreboard || []);
 }
 
-function renderReveal(reveal) {
+function renderFloatingLeaderboard(scoreboard) {
+  floatingLeaderboardBody.innerHTML = '';
+  scoreboard.forEach((row, i) => {
+    const r = document.createElement('div');
+    r.className = 'fl-row';
+    r.innerHTML = `
+      <span class="fl-rank">${i + 1}</span>
+      <span class="fl-name">${escapeHtml(row.teamName)}</span>
+      <span class="fl-score">${row.total}</span>
+    `;
+    floatingLeaderboardBody.appendChild(r);
+  });
+}
+
+function renderReveal(reveal, phase) {
   revealGrid.innerHTML = '';
   for (const r of reveal) {
     const tile = document.createElement('div');
     tile.className = 'answer-tile' + (r.submitted ? '' : ' no-answer');
-    const name = document.createElement('div');
-    name.className = 'team-name';
-    name.textContent = r.teamName;
+
+    const label = document.createElement('div');
+    label.className = 'team-label';
+    label.textContent = r.teamName;
+
     const answer = document.createElement('div');
     answer.className = 'answer-text';
     answer.textContent = r.submitted ? r.answerText : 'No answer';
-    tile.appendChild(name);
-    tile.appendChild(answer);
-    if (r.points != null) {
+
+    tile.append(label, answer);
+
+    // Points stay hidden while the admin is still scoring (REVEALED) —
+    // only reveal them once scoring is finalized (SCORED).
+    if (phase === 'SCORED' && r.points != null) {
       const pts = document.createElement('div');
       pts.className = 'points';
       pts.textContent = `+${r.points} pts`;
       tile.appendChild(pts);
+    } else if (phase === 'REVEALED') {
+      const pending = document.createElement('div');
+      pending.className = 'points pending';
+      pending.textContent = 'Scoring…';
+      tile.appendChild(pending);
     }
     revealGrid.appendChild(tile);
   }
@@ -75,28 +122,11 @@ function renderReveal(reveal) {
 
 function renderScoreboard(scoreboard) {
   scoreboardBody.innerHTML = '';
-  for (const row of scoreboard) {
+  scoreboard.forEach((row, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escapeHtml(row.teamName)}</td><td>${row.total}</td>`;
+    tr.innerHTML = `<td class="rank-cell">${i + 1}</td><td>${escapeHtml(row.teamName)}</td><td>${row.total}</td>`;
     scoreboardBody.appendChild(tr);
-  }
-  miniLeaderboardBody.innerHTML = "";
-
-scoreboard.slice(0,5).forEach((row,index)=>{
-
-    const div = document.createElement("div");
-
-    div.className = "mini-row";
-
-    div.innerHTML = `
-        <span>${index+1}</span>
-        <span class="mini-team">${row.teamName}</span>
-        <span class="mini-score">${row.total}</span>
-    `;
-
-    miniLeaderboardBody.appendChild(div);
-
-});
+  });
 }
 
 function startTicking(timerEndAt) {

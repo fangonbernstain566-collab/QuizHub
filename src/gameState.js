@@ -23,6 +23,8 @@ const PHASES = {
   SCORED: 'SCORED',
 };
 
+const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
+
 class GameManager {
   constructor(db, io) {
     this.db = db;
@@ -146,18 +148,52 @@ class GameManager {
     return this.db.prepare('SELECT id, name FROM players WHERE team_id = ? ORDER BY created_at').all(teamId);
   }
 
-  // ---------------- Questions ----------------
+  // ---------------- Question Bank ----------------
 
-  createQuestion(roundNumber, timeLimitSeconds) {
+  listQuestionBank() {
+    return this.db.prepare('SELECT * FROM question_bank ORDER BY created_at ASC').all();
+  }
+
+  addQuestionToBank(text, difficulty) {
+    text = String(text || '').trim();
+    if (!text) throw new Error('Question text is required');
+    if (text.length > 500) throw new Error('Question text is too long');
+    if (!DIFFICULTY_POINTS[difficulty]) throw new Error('Invalid difficulty');
+
+    const points = DIFFICULTY_POINTS[difficulty];
+    const info = this.db
+      .prepare('INSERT INTO question_bank (text, difficulty, points, created_at) VALUES (?, ?, ?, ?)')
+      .run(text, difficulty, points, Date.now());
+
+    this.broadcastState();
+    return { id: Number(info.lastInsertRowid), text, difficulty, points };
+  }
+
+  deleteQuestionFromBank(bankQuestionId) {
+    this.db.prepare('DELETE FROM question_bank WHERE id = ?').run(Number(bankQuestionId));
+    this.broadcastState();
+  }
+
+  // ---------------- Questions (instances actually asked in-game) ----------------
+
+  createQuestion(bankQuestionId, roundNumber, timeLimitSeconds) {
+    const bankQuestion = this.db.prepare('SELECT * FROM question_bank WHERE id = ?').get(Number(bankQuestionId));
+    if (!bankQuestion) throw new Error('Pick a question from the bank first');
+
     roundNumber = Number(roundNumber) || 1;
     timeLimitSeconds = Number(timeLimitSeconds) || 30;
     if (timeLimitSeconds < 5) throw new Error('Time limit must be at least 5 seconds');
+
     const countRow = this.db.prepare('SELECT COUNT(*) as c FROM questions WHERE round_number = ?').get(roundNumber);
     const orderIndex = countRow.c;
-    const text = `Question ${orderIndex + 1}`;
+
     const info = this.db
-      .prepare('INSERT INTO questions (text, round_number, order_index, time_limit_seconds) VALUES (?, ?, ?, ?)')
-      .run(text, roundNumber, orderIndex, timeLimitSeconds);
+      .prepare(
+        `INSERT INTO questions (text, difficulty, points, bank_question_id, round_number, order_index, time_limit_seconds)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(bankQuestion.text, bankQuestion.difficulty, bankQuestion.points, bankQuestion.id, roundNumber, orderIndex, timeLimitSeconds);
+
     return Number(info.lastInsertRowid);
   }
 
@@ -168,9 +204,9 @@ class GameManager {
 
   // ---------------- Game Flow ----------------
 
-  startQuestion(roundNumber, timeLimitSeconds) {
+  startQuestion(bankQuestionId, roundNumber, timeLimitSeconds) {
     if (this.phase !== PHASES.IDLE) throw new Error('Finish the current question before starting a new one');
-    const id = this.createQuestion(roundNumber, timeLimitSeconds);
+    const id = this.createQuestion(bankQuestionId, roundNumber, timeLimitSeconds);
     this.askQuestion(id);
     return { id };
   }
@@ -240,7 +276,6 @@ class GameManager {
       .run(this.currentQuestionId, teamId, points);
     this.broadcastState();
   }
-  
 
   finalizeScoring() {
     if (this.phase !== PHASES.REVEALED && this.phase !== PHASES.SCORED) {
@@ -279,8 +314,14 @@ class GameManager {
     socket.on('admin:setTeamPassword', (payload = {}) =>
       this.wrap(socket, () => this.setTeamPassword(payload.teamId, payload.password))
     );
+    socket.on('admin:addQuestion', (payload = {}) =>
+      this.wrap(socket, () => this.addQuestionToBank(payload.text, payload.difficulty))
+    );
+    socket.on('admin:deleteQuestion', (payload = {}) =>
+      this.wrap(socket, () => this.deleteQuestionFromBank(payload.questionId))
+    );
     socket.on('admin:startQuestion', (payload = {}) =>
-      this.wrap(socket, () => this.startQuestion(payload.roundNumber, payload.timeLimitSeconds))
+      this.wrap(socket, () => this.startQuestion(payload.questionId, payload.roundNumber, payload.timeLimitSeconds))
     );
     socket.on('admin:startAnswering', () => this.wrap(socket, () => this.startAnswering()));
     socket.on('admin:reveal', () => this.wrap(socket, () => this.reveal()));
@@ -413,7 +454,18 @@ class GameManager {
     return ids;
   }
 
-  getScoreboard() {
+  getScoreboard(excludeQuestionId = null) {
+    if (excludeQuestionId) {
+      return this.db
+        .prepare(
+          `SELECT teams.id as teamId, teams.name as teamName, COALESCE(SUM(scores.points), 0) as total
+           FROM teams
+           LEFT JOIN scores ON scores.team_id = teams.id AND scores.question_id != ?
+           GROUP BY teams.id
+           ORDER BY total DESC, teams.name ASC`
+        )
+        .all(excludeQuestionId);
+    }
     return this.db
       .prepare(
         `SELECT teams.id as teamId, teams.name as teamName, COALESCE(SUM(scores.points), 0) as total
@@ -462,15 +514,28 @@ class GameManager {
       question: question
         ? {
             id: question.id,
+            text: question.text,
+            difficulty: question.difficulty,
+            points: question.points,
             roundNumber: question.round_number,
             questionNumber: question.order_index + 1,
             timeLimitSeconds: question.time_limit_seconds,
           }
         : null,
+      questionBank: this.listQuestionBank().map((q) => ({
+        id: q.id,
+        text: q.text,
+        difficulty: q.difficulty,
+        points: q.points,
+      })),
       timerEndAt: this.timerEndAt,
       answeredTeamIds: this.getAnsweredTeamIds(),
       reveal: this.phase === PHASES.REVEALED || this.phase === PHASES.SCORED ? this.getReveal() : null,
-      scoreboard: this.getScoreboard(),
+      // While a question is REVEALED but not yet finalized, the admin may be
+      // scoring it team-by-team — keep the running total on everyone's
+      // scoreboard from jumping around mid-scoring. Once finalized (SCORED),
+      // the points count normally.
+      scoreboard: this.getScoreboard(this.phase === PHASES.REVEALED ? this.currentQuestionId : null),
       teams: this.listTeams().map((t) => ({
         id: t.id,
         name: t.name,

@@ -25,9 +25,20 @@ function initDb() {
       created_at INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS question_bank (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      text TEXT NOT NULL,
+      difficulty TEXT NOT NULL DEFAULT 'medium',
+      points INTEGER NOT NULL DEFAULT 20,
+      created_at INTEGER NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS questions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       text TEXT NOT NULL,
+      difficulty TEXT NOT NULL DEFAULT 'medium',
+      points INTEGER NOT NULL DEFAULT 0,
+      bank_question_id INTEGER,
       round_number INTEGER NOT NULL DEFAULT 1,
       order_index INTEGER NOT NULL DEFAULT 0,
       time_limit_seconds INTEGER NOT NULL DEFAULT 30
@@ -57,6 +68,20 @@ function initDb() {
       timer_end_at INTEGER
     );
   `);
+
+  // Migration: existing quiz.db files were created before difficulty/points/
+  // bank_question_id existed on `questions`. CREATE TABLE IF NOT EXISTS won't
+  // add columns to an already-existing table, so add them by hand if missing.
+  const existingColumns = db.prepare('PRAGMA table_info(questions)').all().map((c) => c.name);
+  if (!existingColumns.includes('difficulty')) {
+    db.exec(`ALTER TABLE questions ADD COLUMN difficulty TEXT NOT NULL DEFAULT 'medium'`);
+  }
+  if (!existingColumns.includes('points')) {
+    db.exec(`ALTER TABLE questions ADD COLUMN points INTEGER NOT NULL DEFAULT 0`);
+  }
+  if (!existingColumns.includes('bank_question_id')) {
+    db.exec(`ALTER TABLE questions ADD COLUMN bank_question_id INTEGER`);
+  }
 
   const row = db.prepare('SELECT id FROM game_state WHERE id = 1').get();
   if (!row) {

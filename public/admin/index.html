@@ -118,6 +118,30 @@
   .field-group input[type=number] { font-family: var(--font-mono); }
   #startQuestionBtn { padding: 12px 22px; font-size: 13px; }
 
+  /* ---- Question bank list ---- */
+  .qbank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+  }
+  .qbank-item .qbank-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .qbank-item .qbank-delete {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .qbank-empty {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 4px 0;
+  }
+
   /* ---- Scoring ---- */
   #scoringCard { display: none; }
   #scoringGrid {
@@ -190,11 +214,41 @@
     <!-- Main workflow column -->
     <div class="main-col">
 
+      <div class="card" id="questionBankCard">
+        <p class="section-label">Setup</p>
+        <p class="section-title">Question bank</p>
+        <p class="section-desc">Add premade questions once — reuse them across rounds. Difficulty sets the default points.</p>
+        <div class="col" style="margin-bottom: 20px;">
+          <div>
+            <label for="newQuestionText">Question text</label>
+            <textarea id="newQuestionText" rows="2" placeholder="What year did the Berlin Wall fall?"></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="newQuestionDifficulty">Difficulty</label>
+              <select id="newQuestionDifficulty" style="padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font-display);">
+                <option value="easy">Easy — 10 pts</option>
+                <option value="medium" selected>Medium — 20 pts</option>
+                <option value="hard">Hard — 30 pts</option>
+              </select>
+            </div>
+            <button id="addQuestionBtn" class="primary">Add question</button>
+          </div>
+        </div>
+        <div id="questionBankList" class="col"></div>
+      </div>
+
       <div class="card" id="startQuestionCard">
         <p class="section-label">Step</p>
         <p class="section-title">Start question</p>
-        <p class="section-desc">Questions are narrated aloud — the server just tracks the round, timer, and answers.</p>
+        <p class="section-desc">Pick a question from the bank, set a round and time limit, then start it.</p>
         <div class="field-row">
+          <div class="field-group" style="flex: 1; min-width: 220px;">
+            <label for="questionSelect">Question</label>
+            <select id="questionSelect" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font-display);">
+              <option value="">Add a question to the bank first</option>
+            </select>
+          </div>
           <div class="field-group">
             <label for="startRound">Round #</label>
             <input type="number" id="startRound" value="1" min="1" style="width: 100px;" />
@@ -203,7 +257,7 @@
             <label for="startTime">Time limit (sec)</label>
             <input type="number" id="startTime" value="30" min="5" style="width: 140px;" />
           </div>
-          <button id="startQuestionBtn" class="primary">Start question</button>
+          <button id="startQuestionBtn" class="primary" disabled>Start question</button>
         </div>
       </div>
 
