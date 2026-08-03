@@ -6,15 +6,125 @@
 <title>QuizHub — Play</title>
 <link rel="stylesheet" href="/shared/shared.css" />
 <style>
-  #joinScreen .form-group { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-  #joinScreen input { width: 100%; box-sizing: border-box; }
-  #gameScreen { display: none; }
-  #questionText { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
-  #status { min-height: 24px; }
-  #toast {
-    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
-    background: var(--danger); color: #2b0a0a; padding: 10px 16px; border-radius: 10px;
-    font-weight: 700; display: none; max-width: 90vw; text-align: center;
+  html, body { height: 100%; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 640px;
+    width: 100%;
+    padding: 4vh 24px 40px;
+  }
+
+  h1 { font-size: 18px; margin-bottom: 4vh; }
+
+  #gameScreen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* Join screen */
+  #joinScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+  #joinScreen h2 { font-size: 14px; margin-bottom: 8px; }
+  #joinScreen p.muted { font-size: 15px; margin-bottom: 28px; }
+  #joinScreen label { font-size: 12px; margin-bottom: 8px; }
+  #joinScreen input {
+    padding: 16px 16px;
+    font-size: 17px;
+  }
+  #joinScreen .col { gap: 20px; }
+  #joinScreen button {
+    padding: 16px;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* Meta bar */
+  .meta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--muted);
+    padding: 16px 20px;
+  }
+  .meta-bar strong { color: var(--text); font-weight: 700; }
+
+  /* Game card */
+  #gameCard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 24px;
+  }
+
+  .timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  #phaseBadge { font-size: 13px; padding: 6px 14px; }
+  #timer { font-size: 3.5rem; }
+
+  .question-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  #roundLabel {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  #difficultyBadge { font-size: 11px; padding: 4px 10px; }
+
+  #questionText {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.35;
+  }
+
+  #status {
+    min-height: 20px;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  #answerInput {
+    flex: 1;
+    min-height: 140px;
+    padding: 16px;
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+
+  #submitBtn {
+    padding: 18px;
+    font-size: 15px;
   }
 </style>
 </head>
@@ -22,33 +132,44 @@
 <div class="container">
   <h1>QuizHub</h1>
 
+  <!-- Join Screen -->
   <div id="joinScreen" class="card">
-    <h2>Join Your Team</h2>
+    <h2>Join your team</h2>
     <p class="muted">Enter your name and the team name given to you by the game master.</p>
-    
-    <div class="form-group">
-      <input type="text" id="playerName" placeholder="Your Name" maxlength="30" autocomplete="off" />
-      <input type="text" id="teamName" placeholder="Team Name" maxlength="40" autocomplete="off" />
-      <button id="joinBtn">Join Game</button>
+    <div class="col">
+      <div>
+        <label for="playerName">Your name</label>
+        <input type="text" id="playerName" placeholder="Alex" maxlength="30" autocomplete="off" />
+      </div>
+      <div>
+        <label for="teamName">Team name</label>
+        <input type="text" id="teamName" placeholder="Trivia Nerds" maxlength="40" autocomplete="off" />
+      </div>
+      <button id="joinBtn" class="primary" style="width: 100%;">Join game</button>
     </div>
   </div>
 
+  <!-- Game Screen -->
   <div id="gameScreen">
-    <div class="card row" style="justify-content: space-between;">
-      <div><span class="muted">Playing as</span> <strong id="myPlayerName"></strong> <span class="muted">on</span> <strong id="myTeamName"></strong></div>
+    <div class="card meta-bar">
+      <span>Playing as <strong id="myPlayerName"></strong> on <strong id="myTeamName"></strong></span>
     </div>
 
-    <div class="card">
-      <div class="row" style="justify-content: space-between;">
-        <span class="badge" id="phaseBadge">—</span>
+    <div class="card" id="gameCard">
+      <div class="timer-row">
+        <span class="badge" id="phaseBadge">Waiting</span>
         <span class="timer" id="timer"></span>
       </div>
-      <div id="questionText" class="muted">Waiting for the host to start a question…</div>
-      <div id="status" class="muted"></div>
-      <textarea id="answerInput" rows="3" placeholder="Type your answer…" disabled></textarea>
-      <div class="row" style="margin-top:10px;">
-        <button id="submitBtn" disabled>Submit answer</button>
+
+      <div class="question-meta" id="questionMeta" style="display: none;">
+        <span id="roundLabel"></span>
+        <span class="badge" id="difficultyBadge"></span>
       </div>
+      <div id="questionText" class="muted">Waiting for the host to start a question…</div>
+      <div id="status"></div>
+
+      <textarea id="answerInput" placeholder="Type your answer…" disabled></textarea>
+      <button id="submitBtn" class="primary" disabled style="width: 100%;">Submit answer</button>
     </div>
   </div>
 </div>

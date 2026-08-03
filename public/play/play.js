@@ -11,11 +11,16 @@ const myPlayerName = document.getElementById('myPlayerName');
 const myTeamName = document.getElementById('myTeamName');
 const phaseBadge = document.getElementById('phaseBadge');
 const timerEl = document.getElementById('timer');
+const questionMeta = document.getElementById('questionMeta');
+const roundLabel = document.getElementById('roundLabel');
+const difficultyBadge = document.getElementById('difficultyBadge');
 const questionText = document.getElementById('questionText');
 const statusEl = document.getElementById('status');
 const answerInput = document.getElementById('answerInput');
 const submitBtn = document.getElementById('submitBtn');
 const toast = document.getElementById('toast');
+
+const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
 let myTeamId = null;
 let latestState = null;
@@ -37,7 +42,6 @@ function connectIdentify() {
 // --- Socket Connection ---
 socket.on('connect', connectIdentify);
 
-// Make sure this matches your HTML button ID
 joinBtn.onclick = () => {
   const pName = playerName.value.trim();
   const tName = teamNameInput.value.trim();
@@ -46,11 +50,9 @@ joinBtn.onclick = () => {
     return showToast('Please enter both your name and team name.');
   }
 
-  // Send player join request
   socket.emit('play:join', { playerName: pName, teamName: tName });
 };
 
-// Catch server errors (like invalid team name)
 socket.on('play:joinError', (message) => {
   showToast(message);
 });
@@ -81,8 +83,8 @@ socket.on('play:myAnswer', ({ answerText }) => {
   hasEditedSinceServer = false;
 });
 
-answerInput.addEventListener('input', () => { 
-  hasEditedSinceServer = true; 
+answerInput.addEventListener('input', () => {
+  hasEditedSinceServer = true;
 });
 
 submitBtn.onclick = () => {
@@ -104,9 +106,10 @@ function render() {
   const { phase, question, timerEndAt, answeredTeamIds } = latestState;
 
   phaseBadge.textContent = phase;
-  phaseBadge.className = 'badge ' + (phase === 'ANSWERING' ? 'on' : 'off');
+  phaseBadge.className = 'badge' + (phase === 'ANSWERING' ? ' active' : '');
 
   if (!question) {
+    questionMeta.style.display = 'none';
     questionText.textContent = 'Waiting for the host to start a question…';
     answerInput.disabled = true;
     submitBtn.disabled = true;
@@ -116,7 +119,16 @@ function render() {
     return;
   }
 
-  questionText.textContent = `Round ${question.roundNumber} — Question ${question.questionNumber}`;
+  questionMeta.style.display = 'flex';
+  roundLabel.textContent = `Round ${question.roundNumber} — Q${question.questionNumber}`;
+  difficultyBadge.textContent = question.difficulty
+    ? `${DIFFICULTY_LABEL[question.difficulty]} · ${question.points} pts`
+    : '';
+  difficultyBadge.className = `badge diff-${question.difficulty || ''}`;
+
+  // The actual question text, shown as soon as it's live
+  questionText.textContent = question.text || '';
+  questionText.classList.remove('muted');
 
   const iSubmitted = myTeamId != null && answeredTeamIds.includes(myTeamId);
 
@@ -129,15 +141,15 @@ function render() {
   } else if (phase === 'ANSWERING') {
     answerInput.disabled = false;
     submitBtn.disabled = false;
-    statusEl.textContent = iSubmitted 
-      ? 'Answer submitted — you can still change it until time runs out.' 
+    statusEl.textContent = iSubmitted
+      ? 'Answer submitted — you can still change it until time runs out.'
       : 'Type your answer and submit before time runs out.';
     startTicking(timerEndAt);
   } else if (phase === 'REVEALED' || phase === 'SCORED') {
     answerInput.disabled = true;
     submitBtn.disabled = true;
-    statusEl.textContent = iSubmitted 
-      ? 'Answers revealed — check the display!' 
+    statusEl.textContent = iSubmitted
+      ? 'Answers revealed — check the display!'
       : 'Time ran out before you submitted an answer.';
     stopTicking();
     timerEl.textContent = '';
@@ -163,8 +175,8 @@ function startTicking(timerEndAt) {
 }
 
 function stopTicking() {
-  if (tickHandle) { 
-    clearInterval(tickHandle); 
-    tickHandle = null; 
+  if (tickHandle) {
+    clearInterval(tickHandle);
+    tickHandle = null;
   }
 }
