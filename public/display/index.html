@@ -6,45 +6,6 @@
 <title>QuizHub — Display</title>
 <link rel="stylesheet" href="/shared/shared.css" />
 <style>
-<<<<<<< HEAD
-  body { display: flex; flex-direction: column; align-items: center; }
-  .container { max-width: 1400px; width: 100%; }
-  #idleMsg { text-align: center; font-size: 1.6rem; color: var(--muted); margin: 60px 0; }
-
-  .fadeable { transition: opacity 350ms ease; opacity: 1; }
-  .fadeable.fading-out { opacity: 0; }
-
-  .stage-card { min-height: 440px; display: flex; flex-direction: column; }
-
-  .stage-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-  .corner-label { font-size: 1.1rem; color: var(--muted); font-weight: 600; line-height: 1.4; }
-  .corner-scoreboard {
-    background: var(--panel-light);
-    border-radius: var(--radius);
-    padding: 10px 16px;
-    min-width: 200px;
-  }
-  .corner-scoreboard-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
-  .corner-score-row { display: flex; justify-content: space-between; gap: 16px; font-size: 0.95rem; padding: 2px 0; }
-  .corner-score-row .score { font-weight: 700; color: var(--accent); }
-
-  .stage-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; }
-  .question-text { font-size: 2.4rem; font-weight: 800; }
-  .question-text.secondary { font-size: 1.3rem; font-weight: 600; color: var(--muted); }
-  .timer-label { font-size: 1.1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .timer { font-size: 5rem; }
-
-  .reveal-header { font-size: 1.8rem; font-weight: 800; text-align: center; margin-bottom: 14px; }
-  .divider { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--panel-light); }
-  .divider-dot { width: 8px; height: 8px; border-radius: 2px; transform: rotate(45deg); background: var(--accent); margin: 0 12px; flex-shrink: 0; }
-
-  .answer-tile .points { font-weight: 800; color: var(--accent); }
-
-  @media (max-width: 640px) {
-    .stage-header { flex-direction: column; }
-    .corner-scoreboard { width: 100%; }
-=======
   html, body {
     height: 100%;
   }
@@ -237,7 +198,6 @@
 
   @media (max-width: 720px) {
     #floatingLeaderboard { width: 200px; top: 12px; right: 12px; padding: 10px 12px; }
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
   }
 </style>
 </head>
@@ -250,17 +210,6 @@
 <div class="container">
   <h1 style="text-align: center;">QuizHub</h1>
 
-<<<<<<< HEAD
-  <div id="idleMsg" class="fadeable" style="display:none;">Waiting for the host to start the next question…</div>
-
-  <div id="stageCard" class="card stage-card fadeable" style="display:none;">
-    <div class="stage-header">
-      <div id="roundLabel" class="corner-label"></div>
-      <div class="corner-scoreboard">
-        <div class="corner-scoreboard-title">Scoreboard</div>
-        <div id="cornerScoreboardList"></div>
-      </div>
-=======
   <div id="idleMsg" style="display: none;">Waiting for the host to start the next question…</div>
 
   <div id="questionCard" class="card" style="display: none;">
@@ -275,29 +224,9 @@
     </div>
     <div>
       <span class="badge active" id="progressBadge"></span>
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
     </div>
+  </div>
 
-<<<<<<< HEAD
-    <div id="questionCenter" class="stage-center fadeable" style="display:none;">
-      <div id="timerWrap" class="fadeable" style="display:none;">
-        <div class="timer-label">Time</div>
-        <div class="timer" id="timer"></div>
-      </div>
-      <div id="questionText" class="question-text"></div>
-      <div class="row" style="justify-content:center;">
-        <span class="badge" id="progressBadge"></span>
-      </div>
-    </div>
-
-    <div id="revealCenter" class="stage-center fadeable" style="display:none;">
-      <div style="width:100%;">
-        <div id="revealHeader" class="reveal-header"></div>
-        <div class="divider"><span class="divider-dot"></span></div>
-        <div class="grid" id="revealGrid"></div>
-      </div>
-    </div>
-=======
   <div id="revealCard" class="card" style="display: none;">
     <h2>Answers</h2>
     <div class="grid" id="revealGrid"></div>
@@ -315,7 +244,6 @@
       </thead>
       <tbody id="scoreboardBody"></tbody>
     </table>
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
   </div>
 </div>
 
