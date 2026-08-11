@@ -364,3 +364,129 @@ select {
 /* ---- Hover states: sky blue ---- */
 button:hover { background: var(--admin-sky-soft); }
 button.primary:hover { opacity: 1; filter: brightness(1.15); }
+
+/* ========================================================================
+   GAME SESSION CONTROLS
+   ======================================================================== */
+
+.control-bar button.danger {
+  background: var(--admin-accent-deep);
+  color: #FFFFFF;
+  border-color: var(--admin-accent-deep);
+}
+
+.control-bar button.danger:hover {
+  background: #FFFFFF;
+  color: var(--admin-accent-deep);
+  border-color: #FFFFFF;
+}
+
+.control-bar button.session-new {
+  background: #FFFFFF;
+  color: var(--admin-primary);
+  border-color: #FFFFFF;
+}
+
+.control-bar button.session-new:hover {
+  background: var(--admin-secondary);
+  color: var(--admin-primary);
+  border-color: var(--admin-secondary);
+}
+
+.control-bar button:disabled {
+  opacity: 0.38;
+}
+
+.session-card {
+  overflow: hidden;
+}
+
+.session-card .section-label {
+  color: var(--admin-secondary);
+}
+
+.session-card .section-title {
+  margin-bottom: 6px;
+}
+
+.session-status {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.session-winner {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  margin-bottom: 14px;
+  background: rgba(134, 205, 239, 0.12);
+  border: 1px solid rgba(134, 205, 239, 0.35);
+  border-radius: var(--radius);
+}
+
+.session-winner .winner-label {
+  color: var(--admin-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.session-winner strong {
+  color: #FFFFFF;
+  font-size: 15px;
+}
+
+.session-winner > span:last-child {
+  color: var(--admin-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.session-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-history-heading {
+  color: var(--admin-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.session-history-row {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.session-history-row:last-child {
+  border-bottom: none;
+}
+
+.session-history-number {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.session-history-winner {
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.session-history-empty {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-style: italic;
+}

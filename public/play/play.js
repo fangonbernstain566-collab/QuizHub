@@ -447,7 +447,7 @@ function render() {
 
 
   // -------------------------------------------------------
-  // NO QUESTION
+  // NO QUESTION / SESSION ENDED
   // -------------------------------------------------------
 
   if (!question) {
@@ -456,8 +456,11 @@ function render() {
       'none';
 
 
-    questionText.textContent =
-      'Waiting for the host to start a question…';
+    const sessionEnded = phase === 'SESSION_ENDED';
+
+    questionText.textContent = sessionEnded
+      ? 'This game session has ended. Waiting for the next session…'
+      : 'Waiting for the host to start a question…';
 
 
     questionText.classList.add(
@@ -473,7 +476,9 @@ function render() {
       true;
 
 
-    statusEl.textContent = '';
+    statusEl.textContent = sessionEnded
+      ? 'The game master has finished this session.'
+      : '';
 
 
     answerInput.value = '';

@@ -21,6 +21,7 @@ const PHASES = {
   ANSWERING: 'ANSWERING',
   REVEALED: 'REVEALED',
   SCORED: 'SCORED',
+  SESSION_ENDED: 'SESSION_ENDED',
 };
 
 const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
@@ -30,6 +31,12 @@ class GameManager {
     this.db = db;
     this.io = io;
     this.revealTimer = null;
+
+    // Session state is intentionally kept in memory. The database is only
+    // used for the normal QuizHub data and the current game state.
+    this.sessionNumber = 1;
+    this.sessionHistory = [];
+    this.finalScoreboard = [];
 
     // socket.id -> { role, teamId, playerId }
     this.sockets = new Map();
@@ -41,9 +48,24 @@ class GameManager {
     this.currentQuestionId = row.current_question_id;
     this.timerEndAt = row.timer_end_at;
 
-    // Fallback if server restarted mid-countdown
+    // Fallback if server restarted mid-countdown.
     if (this.phase === PHASES.ANSWERING) {
       this.phase = PHASES.ASK_QUESTION;
+      this.timerEndAt = null;
+      this.persistState();
+    }
+
+    // Session history is intentionally in memory. If the server was restarted
+    // while the previous process was showing SESSION_ENDED, start cleanly in
+    // a fresh game instead of pretending that an in-memory winner still exists.
+    if (this.phase === PHASES.SESSION_ENDED) {
+      this.db.exec(`
+        DELETE FROM scores;
+        DELETE FROM answers;
+        DELETE FROM questions;
+      `);
+      this.phase = PHASES.IDLE;
+      this.currentQuestionId = null;
       this.timerEndAt = null;
       this.persistState();
     }
@@ -294,6 +316,71 @@ class GameManager {
     this.broadcastState();
   }
 
+  // ---------------- Game Sessions ----------------
+
+  endGame() {
+    if (this.phase !== PHASES.SCORED) {
+      throw new Error('Finalize scoring before ending the game');
+    }
+
+    this.clearRevealTimer();
+
+    const standings = this.getScoreboard().map((row) => ({
+      teamId: row.teamId,
+      teamName: row.teamName,
+      total: Number(row.total) || 0,
+    }));
+
+    const winner = standings.length > 0 ? {
+      teamId: standings[0].teamId,
+      teamName: standings[0].teamName,
+      score: standings[0].total,
+    } : null;
+
+    const completedSession = {
+      sessionNumber: this.sessionNumber,
+      endedAt: Date.now(),
+      winner,
+      scoreboard: standings,
+    };
+
+    this.sessionHistory.push(completedSession);
+    this.finalScoreboard = standings;
+    this.currentQuestionId = null;
+    this.phase = PHASES.SESSION_ENDED;
+    this.timerEndAt = null;
+    this.persistState();
+    this.broadcastState();
+
+    return completedSession;
+  }
+
+  startNewSession() {
+    if (this.phase !== PHASES.SESSION_ENDED) {
+      throw new Error('End the current game before starting a new session');
+    }
+
+    this.clearRevealTimer();
+
+    // Reset only the current game. Teams, players, and the question bank
+    // stay intact so the next session can start immediately.
+    this.db.exec(`
+      DELETE FROM scores;
+      DELETE FROM answers;
+      DELETE FROM questions;
+    `);
+
+    this.sessionNumber += 1;
+    this.finalScoreboard = [];
+    this.currentQuestionId = null;
+    this.phase = PHASES.IDLE;
+    this.timerEndAt = null;
+    this.persistState();
+    this.broadcastState();
+
+    return { sessionNumber: this.sessionNumber };
+  }
+
   clearRevealTimer() {
     if (this.revealTimer) {
       clearTimeout(this.revealTimer);
@@ -330,6 +417,8 @@ class GameManager {
     );
     socket.on('admin:finalizeScoring', () => this.wrap(socket, () => this.finalizeScoring()));
     socket.on('admin:nextQuestion', () => this.wrap(socket, () => this.returnToAskQuestion()));
+    socket.on('admin:endGame', () => this.wrap(socket, () => this.endGame()));
+    socket.on('admin:startNewSession', () => this.wrap(socket, () => this.startNewSession()));
 
     socket.on('disconnect', () => this.onDisconnect(socket));
   }
@@ -509,8 +598,29 @@ class GameManager {
     const question = this.getQuestion(this.currentQuestionId);
     const connected = this.connectedTeamIds();
     const connectedPlayers = this.connectedPlayerIds();
+    const scoreboard = this.phase === PHASES.SESSION_ENDED
+      ? this.finalScoreboard
+      : this.getScoreboard(this.phase === PHASES.REVEALED ? this.currentQuestionId : null);
+    const latestSession = this.sessionHistory.length
+      ? this.sessionHistory[this.sessionHistory.length - 1]
+      : null;
+
     return {
       phase: this.phase,
+      session: {
+        number: this.sessionNumber,
+        status: this.phase === PHASES.SESSION_ENDED ? 'ENDED' : 'ACTIVE',
+        winner: latestSession && latestSession.sessionNumber === this.sessionNumber
+          ? latestSession.winner
+          : null,
+      },
+      sessionHistory: this.sessionHistory.map((session) => ({
+        sessionNumber: session.sessionNumber,
+        endedAt: session.endedAt,
+        winner: session.winner,
+        scoreboard: session.scoreboard,
+      })),
+      finalScoreboard: this.finalScoreboard,
       question: question
         ? {
             id: question.id,
@@ -534,8 +644,9 @@ class GameManager {
       // While a question is REVEALED but not yet finalized, the admin may be
       // scoring it team-by-team — keep the running total on everyone's
       // scoreboard from jumping around mid-scoring. Once finalized (SCORED),
-      // the points count normally.
-      scoreboard: this.getScoreboard(this.phase === PHASES.REVEALED ? this.currentQuestionId : null),
+      // the points count normally. After END GAME, use the frozen final
+      // standings for the winner screen.
+      scoreboard,
       teams: this.listTeams().map((t) => ({
         id: t.id,
         name: t.name,

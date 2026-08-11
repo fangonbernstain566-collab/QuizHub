@@ -120,6 +120,7 @@ h1 {
 #idleMsg,
 #questionCard,
 #revealCard,
+#finalGameCard,
 #scoreboardCard {
 
   background:
@@ -447,6 +448,66 @@ h1 {
   font-weight: 500;
 
   font-style: italic;
+}
+
+
+/* =========================================================
+   FINAL GAME / WINNER
+   ========================================================= */
+
+#finalGameCard {
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding: 6vh 6vw;
+
+  margin-bottom: 3vh;
+
+  backdrop-filter: blur(10px);
+}
+
+#finalGameCard .final-session-label {
+  color: var(--secondary);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
+}
+
+#finalGameCard .final-title {
+  color: #FFFFFF;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+
+#finalGameCard .final-winner {
+  color: var(--secondary);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#finalGameCard .final-score {
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  font-weight: 700;
+}
+
+#finalGameCard .final-subtitle {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 1rem;
+  margin-top: 22px;
 }
 
 
@@ -856,6 +917,29 @@ h1 {
       class="grid"
       id="revealGrid"
     ></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FINAL GAME / WINNER
+       ===================================================== -->
+
+  <div
+    id="finalGameCard"
+    class="card"
+    style="display: none;"
+  >
+
+    <div class="final-session-label" id="finalSessionLabel">Session 1</div>
+
+    <div class="final-title">GAME OVER</div>
+
+    <div class="final-winner" id="finalWinner">🏆 Winner</div>
+
+    <div class="final-score" id="finalScore">0 pts</div>
+
+    <div class="final-subtitle">Final standings</div>
 
   </div>
 

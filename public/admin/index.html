@@ -99,6 +99,22 @@
         Next round →
       </button>
 
+      <button
+        id="endGameBtn"
+        class="danger"
+        disabled
+      >
+        End game
+      </button>
+
+      <button
+        id="newSessionBtn"
+        class="session-new"
+        disabled
+      >
+        Start new session
+      </button>
+
     </div>
 
   </div>
@@ -446,6 +462,28 @@
          ================================================= -->
 
     <div class="side-col">
+
+
+      <!-- ===============================================
+           SESSION CONTROL
+           =============================================== -->
+
+      <div
+        class="card session-card"
+        id="sessionCard"
+      >
+
+        <p class="section-label">Game session</p>
+
+        <p class="section-title" id="sessionTitle">Session 1</p>
+
+        <p class="session-status" id="sessionStatus">Current session is active.</p>
+
+        <div id="sessionWinner" class="session-winner" style="display: none;"></div>
+
+        <div class="session-history" id="sessionHistory"></div>
+
+      </div>
 
 
       <!-- ===============================================
