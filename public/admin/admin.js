@@ -8,6 +8,7 @@ const finalizeBtn = document.getElementById('finalizeBtn');
 const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 const endGameBtn = document.getElementById('endGameBtn');
 const newSessionBtn = document.getElementById('newSessionBtn');
+const resetAllSessionsBtn = document.getElementById('resetAllSessionsBtn');
 
 const startQuestionCard = document.getElementById('startQuestionCard');
 const questionSelect = document.getElementById('questionSelect');
@@ -117,6 +118,11 @@ newSessionBtn.onclick = () => {
   socket.emit('admin:startNewSession');
 };
 
+resetAllSessionsBtn.onclick = () => {
+  if (!confirm('Reset ALL session history and return to Session 1? This will clear all current scores and answers, but keep teams, players, and the question bank.')) return;
+  socket.emit('admin:resetAllSessions');
+};
+
 function render() {
   if (!latestState) return;
   const {
@@ -143,6 +149,7 @@ function render() {
   nextQuestionBtn.disabled = phase !== 'SCORED';
   endGameBtn.disabled = phase !== 'SCORED';
   newSessionBtn.disabled = phase !== 'SESSION_ENDED';
+  resetAllSessionsBtn.disabled = false;
 
   startQuestionCard.style.display = phase === 'SESSION_ENDED' ? 'none' : 'block';
 

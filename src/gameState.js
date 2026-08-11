@@ -355,6 +355,29 @@ class GameManager {
     return completedSession;
   }
 
+  resetAllSessions() {
+    this.clearRevealTimer();
+
+    // Reset only game/session data. Teams, players, and the question bank
+    // remain untouched. Session history is intentionally kept in memory.
+    this.db.exec(`
+      DELETE FROM scores;
+      DELETE FROM answers;
+      DELETE FROM questions;
+    `);
+
+    this.sessionNumber = 1;
+    this.sessionHistory = [];
+    this.finalScoreboard = [];
+    this.currentQuestionId = null;
+    this.phase = PHASES.IDLE;
+    this.timerEndAt = null;
+    this.persistState();
+    this.broadcastState();
+
+    return { sessionNumber: this.sessionNumber };
+  }
+
   startNewSession() {
     if (this.phase !== PHASES.SESSION_ENDED) {
       throw new Error('End the current game before starting a new session');
@@ -419,6 +442,7 @@ class GameManager {
     socket.on('admin:nextQuestion', () => this.wrap(socket, () => this.returnToAskQuestion()));
     socket.on('admin:endGame', () => this.wrap(socket, () => this.endGame()));
     socket.on('admin:startNewSession', () => this.wrap(socket, () => this.startNewSession()));
+    socket.on('admin:resetAllSessions', () => this.wrap(socket, () => this.resetAllSessions()));
 
     socket.on('disconnect', () => this.onDisconnect(socket));
   }
