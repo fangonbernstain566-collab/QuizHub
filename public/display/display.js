@@ -25,7 +25,15 @@ socket.on('connect', () => socket.emit('identify', { role: 'display' }));
 socket.on('state:update', (state) => render(state));
 
 function render(state) {
-  const { phase, question, timerEndAt, answeredTeamIds, reveal, scoreboard, teams } = state;
+  const {
+    phase = 'IDLE',
+    question = null,
+    timerEndAt = null,
+    answeredTeamIds = [],
+    reveal = null,
+    scoreboard = [],
+    teams = [],
+  } = state;
 
   const isIdle = phase === 'IDLE' || !question;
   const isReveal = phase === 'REVEALED' || phase === 'SCORED';
@@ -141,6 +149,13 @@ function renderScoreboard(scoreboard) {
 // used to be and transition it to its new spot — so a team that jumps to the
 // top visibly slides there instead of just teleporting.
 function flipRows(container, scoreboard, buildRow) {
+  // First render: no prior positions to compare against — just paint.
+  if (!container.children.length) {
+    container.innerHTML = '';
+    scoreboard.forEach((row, i) => container.appendChild(buildRow(row, i)));
+    return;
+  }
+
   const first = new Map();
   for (const child of container.children) {
     first.set(child.dataset.teamId, child.getBoundingClientRect());
