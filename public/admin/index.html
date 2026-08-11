@@ -5,188 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>QuizHub — Admin</title>
 <link rel="stylesheet" href="/shared/shared.css" />
-<style>
-  .container { max-width: 1400px; padding: 0 24px 60px; }
-
-  /* ---- Control bar ---- */
-  .control-bar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    background: var(--bg);
-    margin-bottom: 0;
-  }
-
-  .control-bar-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .control-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .control-bar-left .brand {
-    font-size: 15px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    white-space: nowrap;
-  }
-
-  .phase-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .phase-pill span.label {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  #phaseBadge { font-size: 13px; padding: 6px 14px; }
-  #currentQuestionLabel { font-size: 13px; }
-
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .btn-row button { padding: 12px 18px; font-size: 12px; }
-
-  /* ---- Page grid: workflow + sidebar ---- */
-  .page-grid {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
-    margin-top: 24px;
-    align-items: start;
-  }
-  @media (max-width: 960px) {
-    .page-grid { grid-template-columns: 1fr; }
-  }
-
-  .main-col, .side-col {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .card { padding: 24px; }
-
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-  .section-title {
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 4px;
-  }
-  .section-desc {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 20px;
-  }
-
-  /* ---- Start question ---- */
-  .field-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .field-group { display: flex; flex-direction: column; gap: 6px; }
-  .field-group input { font-size: 16px; padding: 12px 14px; }
-  .field-group input[type=number] { font-family: var(--font-mono); }
-  #startQuestionBtn { padding: 12px 22px; font-size: 13px; }
-
-  /* ---- Question bank list ---- */
-  .qbank-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius);
-  }
-  .qbank-item .qbank-text {
-    flex: 1;
-    font-size: 14px;
-    color: var(--text);
-  }
-  .qbank-item .qbank-delete {
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-  .qbank-empty {
-    font-size: 13px;
-    color: var(--muted);
-    padding: 4px 0;
-  }
-
-  /* ---- Scoring ---- */
-  #scoringCard { display: none; }
-  #scoringGrid {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
-  }
-  #scoringGrid .answer-tile {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-  }
-  #scoringGrid .answer-tile .team-label { font-size: 11px; }
-  #scoringGrid .answer-tile .answer-text {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-    flex: 1;
-  }
-  #scoringGrid .answer-tile .score-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  #scoringGrid .answer-tile input[type=number] {
-    width: 76px;
-    font-family: var(--font-mono);
-    padding: 10px;
-  }
-  #scoringGrid .answer-tile .score-row button { flex: 1; padding: 10px; font-size: 11px; }
-
-  /* ---- Teams ---- */
-  #teamsCard .row { margin-bottom: 16px; }
-  #teamsCard input { padding: 12px 14px; font-size: 14px; }
-  #addTeamBtn { padding: 12px 18px; font-size: 12px; }
-  #teamsBody .status-cell { width: 100px; }
-  #teamsBody .players-cell { width: 60px; text-align: right; font-family: var(--font-mono); color: var(--muted); }
-
-  /* ---- Scoreboard ---- */
-  #scoreboardCard table { font-size: 14px; }
-  #scoreboardBody .rank-cell { font-family: var(--font-mono); color: var(--muted); width: 24px; }
-  #scoreboardBody td:last-child { text-align: right; font-family: var(--font-mono); font-weight: 700; font-size: 16px; }
-</style>
+<link rel="stylesheet" href="admin.css" />
 </head>
-<body>
+<body class="admin-view">
 
 <!-- Sticky control bar -->
 <div class="card control-bar">
@@ -226,7 +47,7 @@
           <div class="field-row">
             <div class="field-group">
               <label for="newQuestionDifficulty">Difficulty</label>
-              <select id="newQuestionDifficulty" style="padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font-display);">
+              <select id="newQuestionDifficulty" style="padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--admin-surface); color: var(--text); font-family: var(--font-display);">
                 <option value="easy">Easy — 10 pts</option>
                 <option value="medium" selected>Medium — 20 pts</option>
                 <option value="hard">Hard — 30 pts</option>
@@ -245,7 +66,7 @@
         <div class="field-row">
           <div class="field-group" style="flex: 1; min-width: 220px;">
             <label for="questionSelect">Question</label>
-            <select id="questionSelect" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font-display);">
+            <select id="questionSelect" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--admin-surface); color: var(--text); font-family: var(--font-display);">
               <option value="">Add a question to the bank first</option>
             </select>
           </div>

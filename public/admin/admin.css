@@ -1,0 +1,313 @@
+/*
+ * QuizHub — Admin view stylesheet.
+ * Scoped exclusively to the admin page via `body.admin-view`.
+ *
+ * Theme: school logo palette (admin only — display/play views are untouched).
+ *   --admin-primary        #35267E  Navy — topbar, sidebar, primary buttons, active states
+ *   --admin-secondary      #86CDEF  Sky blue — card backgrounds, hover, secondary buttons, badges
+ *   --admin-accent         #D24D31  Orange-red — destructive actions, errors, alerts only
+ *   --admin-accent-deep    #C24226  Accessible deepening of the accent for filled text surfaces
+ *                                   (white on #D24D31 is only 4.33:1, below WCAG AA 4.5:1)
+ *   --admin-ink            #1F2027  Neutral dark — body text, icons
+ *   --admin-gold           #C4B584  Neutral gold — borders, dividers, subtle accents
+ *   --admin-bg             #F5F5F5  Page background
+ *   --admin-surface        #FFFFFF  Card/input surfaces
+ *
+ * The generic variables consumed by shared.css (--bg, --surface, --text, …) are
+ * remapped *within this page scope only* so the shared component styles pick up
+ * the palette without touching the global theme used by display/play.
+ */
+
+/* ========================================================================
+   Layout (moved verbatim from the former inline <style> block)
+   ======================================================================== */
+
+.container { max-width: 1400px; padding: 0 24px 60px; }
+
+/* ---- Control bar ---- */
+.control-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  background: var(--bg);
+  margin-bottom: 0;
+}
+
+.control-bar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.control-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.control-bar-left .brand {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.phase-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.phase-pill span.label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+#phaseBadge { font-size: 13px; padding: 6px 14px; }
+#currentQuestionLabel { font-size: 13px; }
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-row button { padding: 12px 18px; font-size: 12px; }
+
+/* ---- Page grid: workflow + sidebar ---- */
+.page-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .page-grid { grid-template-columns: 1fr; }
+}
+
+.main-col, .side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card { padding: 24px; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.section-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* ---- Start question ---- */
+.field-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group input { font-size: 16px; padding: 12px 14px; }
+.field-group input[type=number] { font-family: var(--font-mono); }
+#startQuestionBtn { padding: 12px 22px; font-size: 13px; }
+
+/* ---- Question bank list ---- */
+.qbank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+}
+.qbank-item .qbank-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+}
+.qbank-item .qbank-delete {
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.qbank-empty {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+/* ---- Scoring ---- */
+#scoringCard { display: none; }
+#scoringGrid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+#scoringGrid .answer-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+#scoringGrid .answer-tile .team-label { font-size: 11px; }
+#scoringGrid .answer-tile .answer-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+#scoringGrid .answer-tile .score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#scoringGrid .answer-tile input[type=number] {
+  width: 76px;
+  font-family: var(--font-mono);
+  padding: 10px;
+}
+#scoringGrid .answer-tile .score-row button { flex: 1; padding: 10px; font-size: 11px; }
+
+/* ---- Teams ---- */
+#teamsCard .row { margin-bottom: 16px; }
+#teamsCard input { padding: 12px 14px; font-size: 14px; }
+#addTeamBtn { padding: 12px 18px; font-size: 12px; }
+#teamsBody .status-cell { width: 100px; }
+#teamsBody .players-cell { width: 60px; text-align: right; font-family: var(--font-mono); color: var(--muted); }
+
+/* ---- Scoreboard ---- */
+#scoreboardCard table { font-size: 14px; }
+#scoreboardBody .rank-cell { font-family: var(--font-mono); color: var(--muted); width: 24px; }
+#scoreboardBody td:last-child { text-align: right; font-family: var(--font-mono); font-weight: 700; font-size: 16px; }
+
+/* ========================================================================
+   Admin theme (scoped to body.admin-view)
+   ======================================================================== */
+
+body.admin-view {
+  /* School palette */
+  --admin-primary: #35267E;
+  --admin-navy-top: #443099;
+  --admin-navy-bottom: #241A55;
+  --admin-secondary: #86CDEF;
+  --admin-accent: #D24D31;
+  --admin-accent-deep: #C24226;
+  --admin-ink: #1F2027;
+  --admin-gold: #C4B584;
+  --admin-gold-soft: #E4DABE;
+  --admin-bg: #F5F5F5;
+  --admin-surface: #FFFFFF;
+  --admin-muted: #3C3F46;
+  --admin-faint: #6B6E78;
+  --admin-sky-soft: #DCF0FB;
+
+  /* Remap shared.css tokens to the palette (this page only) */
+  --bg: var(--admin-bg);
+  --surface: var(--admin-surface);
+  --surface-2: var(--admin-sky-soft);
+  --line: var(--admin-gold);
+  --line-soft: var(--admin-gold-soft);
+  --text: var(--admin-ink);
+  --muted: var(--admin-muted);
+  --faint: var(--admin-faint);
+  --inverse-bg: var(--admin-primary);
+  --inverse-text: #FFFFFF;
+
+  /* Keep native widgets (selects, scrollbars, inputs) rendering light */
+  color-scheme: light;
+}
+
+/* ---- Cards: sky blue surfaces with gold borders ---- */
+.card {
+  background: var(--admin-secondary);
+  border-color: var(--admin-gold);
+}
+
+/* ---- Topbar (control bar): navy gradient, white text/icons ---- */
+.control-bar {
+  background: linear-gradient(180deg, var(--admin-navy-top) 0%, var(--admin-navy-bottom) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.control-bar .brand { color: #FFFFFF; }
+.control-bar .phase-pill span.label { color: var(--admin-secondary); }
+.control-bar .muted { color: var(--admin-secondary); }
+.control-bar .badge { color: #FFFFFF; border-color: rgba(255, 255, 255, 0.45); }
+.control-bar .badge.active { background: var(--admin-secondary); color: var(--admin-primary); border-color: var(--admin-secondary); }
+.control-bar button { background: transparent; color: #FFFFFF; border-color: rgba(255, 255, 255, 0.45); }
+.control-bar button.primary { background: var(--admin-secondary); color: var(--admin-primary); border-color: var(--admin-secondary); }
+.control-bar button:hover { background: var(--admin-secondary); color: var(--admin-primary); border-color: var(--admin-secondary); }
+.control-bar button.primary:hover { background: #FFFFFF; color: var(--admin-primary); border-color: #FFFFFF; }
+
+/* ---- Sidebar (side column): navy gradient, white text, sky accents ---- */
+.side-col .card {
+  background: linear-gradient(180deg, var(--admin-navy-top) 0%, var(--admin-navy-bottom) 100%);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.side-col .section-title { color: #FFFFFF; }
+.side-col .section-desc { color: var(--admin-secondary); }
+.side-col th { color: var(--admin-secondary); border-bottom-color: rgba(255, 255, 255, 0.25); }
+.side-col td { color: #FFFFFF; border-bottom-color: rgba(255, 255, 255, 0.12); }
+.side-col .rank-cell,
+.side-col .players-cell { color: var(--admin-secondary); }
+.side-col .badge { color: #FFFFFF; border-color: rgba(255, 255, 255, 0.45); background: transparent; }
+.side-col .badge.active { background: var(--admin-secondary); color: var(--admin-primary); border-color: var(--admin-secondary); }
+.side-col button { background: var(--admin-secondary); color: var(--admin-primary); border-color: var(--admin-secondary); }
+.side-col button:hover { background: #FFFFFF; color: var(--admin-primary); border-color: #FFFFFF; }
+
+/* ---- Inputs: white on sky cards and navy sidebar ---- */
+input[type=text],
+input[type=number],
+textarea,
+select {
+  background: var(--admin-surface);
+}
+
+/* ---- Question bank rows: white on sky, gold border ---- */
+.qbank-item {
+  background: var(--admin-surface);
+  border-color: var(--admin-gold);
+}
+
+/* ---- Scoring answer tiles ---- */
+.answer-tile {
+  background: var(--admin-surface);
+  border-color: var(--admin-gold);
+}
+.answer-tile.no-answer { background: var(--admin-gold-soft); border-style: dashed; }
+
+/* ---- Destructive actions: accent (orange-red) only ---- */
+.qbank-delete {
+  background: var(--admin-accent-deep);
+  color: #FFFFFF;
+  border-color: var(--admin-accent-deep);
+}
+.qbank-delete:hover { background: var(--admin-accent-deep); border-color: var(--admin-accent-deep); color: #FFFFFF; filter: brightness(0.92); }
+
+/* ---- Errors / alerts ---- */
+#toast.error { background: var(--admin-accent-deep); color: #FFFFFF; }
+
+/* ---- Hover states: sky blue ---- */
+button:hover { background: var(--admin-sky-soft); }
+button.primary:hover { opacity: 1; filter: brightness(1.15); }

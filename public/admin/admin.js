@@ -34,15 +34,16 @@ const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
 let latestState = null;
 let autoScoredQuestionId = null;
 
-function showToast(message) {
+function showToast(message, isError = false) {
   toast.textContent = message;
+  toast.classList.toggle('error', isError);
   toast.style.display = 'block';
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => { toast.style.display = 'none'; }, 3000);
 }
 
 socket.on('connect', () => socket.emit('identify', { role: 'admin' }));
-socket.on('error', ({ message }) => showToast(message));
+socket.on('error', ({ message }) => showToast(message, true));
 
 socket.on('state:update', (state) => {
   latestState = state;
