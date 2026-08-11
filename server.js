@@ -37,42 +37,8 @@ app.use('/api', createApiRouter(db, game));
 
 // --- Socket.IO Event Handling ---
 io.on('connection', (socket) => {
-  // Delegate connection handling to GameManager
+  // Delegate connection handling to GameManager (registers play:join, identify, etc.)
   game.handleConnection(socket);
-
-  // Directly support the streamlined player join event (Team Name + Player Name)
-  socket.on('play:join', (data) => {
-    if (typeof game.handlePlayerJoin === 'function') {
-      game.handlePlayerJoin(socket, data);
-    } else {
-      // Fallback in case handlePlayerJoin isn't directly inside GameManager
-      const { teamName, playerName } = data || {};
-      if (!teamName || !playerName) {
-        return socket.emit('play:joinError', 'Team name and player name are required.');
-      }
-
-      // Assign player session info
-      socket.teamName = teamName;
-      socket.playerName = playerName;
-      socket.role = 'play';
-
-      // Standard team ID generation based on lowercased team name
-      const teamId = 'team_' + teamName.trim().toLowerCase().replace(/\s+/g, '_');
-      socket.join(teamId);
-
-      socket.emit('play:joined', {
-        teamId,
-        teamName: teamName.trim(),
-        playerName: playerName.trim(),
-        token: socket.id
-      });
-
-      // Notify the rest of the game state about updated connected teams/players
-      if (typeof game.broadcastState === 'function') {
-        game.broadcastState();
-      }
-    }
-  });
 });
 
 // --- Start Server ---

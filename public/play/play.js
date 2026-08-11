@@ -16,15 +16,16 @@ const roundLabel = document.getElementById('roundLabel');
 const difficultyBadge = document.getElementById('difficultyBadge');
 const questionText = document.getElementById('questionText');
 const statusEl = document.getElementById('status');
-const answerInput = document.getElementById('answerInput');
-const submitBtn = document.getElementById('submitBtn');
+const answerA = document.getElementById('answerA');
+const answerB = document.getElementById('answerB');
 const toast = document.getElementById('toast');
 
 const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
 let myTeamId = null;
 let latestState = null;
-let hasEditedSinceServer = false;
+let myAnswer = null;
+let myAnswerQuestionId = null;
 let tickHandle = null;
 
 // --- Helper Functions ---
@@ -77,21 +78,26 @@ socket.on('play:forceLogout', ({ reason }) => {
 
 // --- Gameplay & Answers ---
 socket.on('play:myAnswer', ({ answerText }) => {
-  if (answerText != null && !hasEditedSinceServer) {
-    answerInput.value = answerText;
-  }
-  hasEditedSinceServer = false;
+  myAnswer = answerText;
+  myAnswerQuestionId = latestState && latestState.question ? latestState.question.id : null;
+  updateSelectedButton();
 });
 
-answerInput.addEventListener('input', () => {
-  hasEditedSinceServer = true;
-});
+function updateSelectedButton() {
+  answerA.classList.toggle('selected', myAnswer === 'A');
+  answerB.classList.toggle('selected', myAnswer === 'B');
+}
 
-submitBtn.onclick = () => {
-  socket.emit('play:submitAnswer', { answerText: answerInput.value });
-  hasEditedSinceServer = false;
+function selectAnswer(choice) {
+  myAnswer = choice;
+  myAnswerQuestionId = latestState && latestState.question ? latestState.question.id : null;
+  updateSelectedButton();
+  socket.emit('play:submitAnswer', { answerText: choice });
   statusEl.textContent = 'Answer submitted — you can still change it until time runs out.';
-};
+}
+
+answerA.onclick = () => selectAnswer('A');
+answerB.onclick = () => selectAnswer('B');
 
 socket.on('error', ({ message }) => showToast(message));
 
@@ -111,12 +117,18 @@ function render() {
   if (!question) {
     questionMeta.style.display = 'none';
     questionText.textContent = 'Waiting for the host to start a question…';
-    answerInput.disabled = true;
-    submitBtn.disabled = true;
+    answerA.disabled = true;
+    answerB.disabled = true;
     statusEl.textContent = '';
     stopTicking();
     timerEl.textContent = '';
     return;
+  }
+
+  if (question.id !== myAnswerQuestionId) {
+    myAnswer = null;
+    myAnswerQuestionId = question.id;
+    updateSelectedButton();
   }
 
   questionMeta.style.display = 'flex';
@@ -133,21 +145,21 @@ function render() {
   const iSubmitted = myTeamId != null && answeredTeamIds.includes(myTeamId);
 
   if (phase === 'ASK_QUESTION') {
-    answerInput.disabled = true;
-    submitBtn.disabled = true;
+    answerA.disabled = true;
+    answerB.disabled = true;
     statusEl.textContent = 'Listen up — the game master is reading the question aloud.';
     stopTicking();
     timerEl.textContent = '';
   } else if (phase === 'ANSWERING') {
-    answerInput.disabled = false;
-    submitBtn.disabled = false;
+    answerA.disabled = false;
+    answerB.disabled = false;
     statusEl.textContent = iSubmitted
       ? 'Answer submitted — you can still change it until time runs out.'
-      : 'Type your answer and submit before time runs out.';
+      : 'Tap A or B before time runs out.';
     startTicking(timerEndAt);
   } else if (phase === 'REVEALED' || phase === 'SCORED') {
-    answerInput.disabled = true;
-    submitBtn.disabled = true;
+    answerA.disabled = true;
+    answerB.disabled = true;
     statusEl.textContent = iSubmitted
       ? 'Answers revealed — check the display!'
       : 'Time ran out before you submitted an answer.';
@@ -165,8 +177,8 @@ function startTicking(timerEndAt) {
     timerEl.textContent = remaining + 's';
     timerEl.className = 'timer' + (remaining <= 5 ? ' low' : '');
     if (remainingMs <= 0) {
-      answerInput.disabled = true;
-      submitBtn.disabled = true;
+      answerA.disabled = true;
+      answerB.disabled = true;
       stopTicking();
     }
   };
