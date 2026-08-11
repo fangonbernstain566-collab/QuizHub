@@ -1,20 +1,16 @@
 const socket = io();
 
 const idleMsg = document.getElementById('idleMsg');
-const stageCard = document.getElementById('stageCard');
-const questionCenter = document.getElementById('questionCenter');
-const revealCenter = document.getElementById('revealCenter');
 const roundLabel = document.getElementById('roundLabel');
 const difficultyBadge = document.getElementById('difficultyBadge');
 const questionText = document.getElementById('questionText');
 const questionCard = document.getElementById('questionCard');
-const timerWrap = document.getElementById('timerWrap');
+const revealCard = document.getElementById('revealCard');
+const scoreboardCard = document.getElementById('scoreboardCard');
 const statusLine = document.getElementById('statusLine');
 const timerEl = document.getElementById('timer');
 const progressBadge = document.getElementById('progressBadge');
-const revealHeader = document.getElementById('revealHeader');
 const revealGrid = document.getElementById('revealGrid');
-const cornerScoreboardList = document.getElementById('cornerScoreboardList');
 const scoreboardBody = document.getElementById('scoreboardBody');
 const floatingLeaderboard = document.getElementById('floatingLeaderboard');
 const floatingLeaderboardBody = document.getElementById('floatingLeaderboardBody');
@@ -23,45 +19,13 @@ const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
 let tickHandle = null;
 
-const FADE_MS = 350;
-let currentOuter = null; // 'idle' | 'stage'
-let currentInner = null; // 'question' | 'reveal'
-let currentAnswering = false;
-
 socket.on('connect', () => socket.emit('identify', { role: 'display' }));
 
 socket.on('state:update', (state) => render(state));
 
-// Fades hideEl out (then display:none) and/or showEl in (then display:displayValue).
-// Either side may be null to only do one half of the crossfade (e.g. the timer badge).
-function crossfade(hideEl, showEl, displayValue) {
-  if (hideEl) {
-    hideEl.classList.add('fading-out');
-    setTimeout(() => {
-      hideEl.style.display = 'none';
-      hideEl.classList.remove('fading-out');
-    }, FADE_MS);
-  }
-  if (showEl) {
-    showEl.style.display = displayValue;
-    showEl.classList.add('fading-out');
-    void showEl.offsetWidth; // force reflow so the next class change transitions
-    requestAnimationFrame(() => showEl.classList.remove('fading-out'));
-  }
-}
-
 function render(state) {
   const { phase, question, timerEndAt, answeredTeamIds, reveal, scoreboard, teams } = state;
-  const showStage = !(phase === 'IDLE' || !question);
 
-<<<<<<< HEAD
-  if (!showStage) {
-    if (currentOuter !== 'idle') {
-      crossfade(stageCard, idleMsg, 'block');
-      currentOuter = 'idle';
-      currentInner = null;
-      currentAnswering = false;
-=======
   idleMsg.style.display = 'none';
   questionCard.style.display = 'none';
   revealCard.style.display = 'none';
@@ -69,8 +33,12 @@ function render(state) {
   if (phase === 'IDLE' || !question) {
     idleMsg.style.display = 'block';
     stopTicking();
+  } else if (phase === 'REVEALED' || phase === 'SCORED') {
+    revealCard.style.display = 'flex';
+    stopTicking();
+    renderReveal(reveal || [], phase);
   } else if (phase === 'ASK_QUESTION' || phase === 'ANSWERING') {
-    questionCard.style.display = 'block';
+    questionCard.style.display = 'flex';
     roundLabel.textContent = `Round ${question.roundNumber} — Question ${question.questionNumber}`;
     difficultyBadge.textContent = question.difficulty
       ? `${DIFFICULTY_LABEL[question.difficulty]} · ${question.points} pts`
@@ -91,57 +59,7 @@ function render(state) {
     } else {
       stopTicking();
       timerEl.textContent = '';
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
     }
-    stopTicking();
-<<<<<<< HEAD
-    return;
-  }
-
-  if (currentOuter !== 'stage') {
-    crossfade(idleMsg, stageCard, 'flex');
-    currentOuter = 'stage';
-  }
-
-  roundLabel.innerHTML = `Round ${question.roundNumber}<br>Question ${question.questionNumber}`;
-  renderCornerScoreboard(scoreboard || []);
-
-  const isReveal = phase === 'REVEALED' || phase === 'SCORED';
-  const nextInner = isReveal ? 'reveal' : 'question';
-
-  if (nextInner !== currentInner) {
-    if (nextInner === 'reveal') crossfade(questionCenter, revealCenter, 'flex');
-    else crossfade(revealCenter, questionCenter, 'flex');
-    currentInner = nextInner;
-  }
-
-  if (isReveal) {
-    stopTicking();
-    currentAnswering = false;
-    revealHeader.textContent = `Question ${question.questionNumber}`;
-    renderReveal(reveal || []);
-    return;
-  }
-
-  const isAnswering = phase === 'ANSWERING' && !!timerEndAt;
-  if (isAnswering !== currentAnswering) {
-    if (isAnswering) crossfade(null, timerWrap, 'block');
-    else crossfade(timerWrap, null, 'block');
-    currentAnswering = isAnswering;
-  }
-
-  questionText.textContent = `Question ${question.questionNumber}`;
-  questionText.classList.toggle('secondary', isAnswering);
-
-  if (isAnswering) {
-    progressBadge.textContent = `${answeredTeamIds.length} / ${teams.length} teams answered`;
-    startTicking(timerEndAt);
-  } else {
-    progressBadge.textContent = 'Get ready…';
-    stopTicking();
-  }
-=======
-    renderReveal(reveal || [], phase);
   }
 
   // The big centered scoreboard only makes sense on the idle screen — once a
@@ -153,20 +71,19 @@ function render(state) {
 
   renderScoreboard(scoreboard || []);
   renderFloatingLeaderboard(scoreboard || []);
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
 }
 
 function renderFloatingLeaderboard(scoreboard) {
-  floatingLeaderboardBody.innerHTML = '';
-  scoreboard.forEach((row, i) => {
+  flipRows(floatingLeaderboardBody, scoreboard, (row, i) => {
     const r = document.createElement('div');
     r.className = 'fl-row';
+    r.dataset.teamId = row.teamId;
     r.innerHTML = `
       <span class="fl-rank">${i + 1}</span>
       <span class="fl-name">${escapeHtml(row.teamName)}</span>
       <span class="fl-score">${row.total}</span>
     `;
-    floatingLeaderboardBody.appendChild(r);
+    return r;
   });
 }
 
@@ -203,31 +120,44 @@ function renderReveal(reveal, phase) {
   }
 }
 
-<<<<<<< HEAD
-function renderCornerScoreboard(scoreboard) {
-  const sorted = [...scoreboard].sort((a, b) => b.total - a.total);
-  cornerScoreboardList.innerHTML = '';
-  for (const row of sorted) {
-    const line = document.createElement('div');
-    line.className = 'corner-score-row';
-    const name = document.createElement('span');
-    name.textContent = row.teamName;
-    const score = document.createElement('span');
-    score.className = 'score';
-    score.textContent = row.total;
-    line.appendChild(name);
-    line.appendChild(score);
-    cornerScoreboardList.appendChild(line);
-  }
-=======
 function renderScoreboard(scoreboard) {
-  scoreboardBody.innerHTML = '';
-  scoreboard.forEach((row, i) => {
+  flipRows(scoreboardBody, scoreboard, (row, i) => {
     const tr = document.createElement('tr');
+    tr.dataset.teamId = row.teamId;
     tr.innerHTML = `<td class="rank-cell">${i + 1}</td><td>${escapeHtml(row.teamName)}</td><td>${row.total}</td>`;
-    scoreboardBody.appendChild(tr);
+    return tr;
   });
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
+}
+
+// Re-renders `container`'s rows in the new `scoreboard` order using the FLIP
+// technique: capture each existing row's position (by teamId) before the
+// reorder, then after the DOM is rebuilt, offset each row back to where it
+// used to be and transition it to its new spot — so a team that jumps to the
+// top visibly slides there instead of just teleporting.
+function flipRows(container, scoreboard, buildRow) {
+  const first = new Map();
+  for (const child of container.children) {
+    first.set(child.dataset.teamId, child.getBoundingClientRect());
+  }
+
+  container.innerHTML = '';
+  scoreboard.forEach((row, i) => {
+    container.appendChild(buildRow(row, i));
+  });
+
+  for (const child of container.children) {
+    const from = first.get(child.dataset.teamId);
+    if (!from) continue; // new row, just fade/slide in with no prior position
+    const to = child.getBoundingClientRect();
+    const deltaY = from.top - to.top;
+    if (!deltaY) continue;
+    child.style.transform = `translateY(${deltaY}px)`;
+    child.style.transition = 'none';
+    requestAnimationFrame(() => {
+      child.style.transition = 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1)';
+      child.style.transform = '';
+    });
+  }
 }
 
 function startTicking(timerEndAt) {
@@ -244,10 +174,7 @@ function startTicking(timerEndAt) {
 function stopTicking() {
   if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
 }
-<<<<<<< HEAD
-=======
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
->>>>>>> b88dd54a1c51e24e4c9b60d17f341dc1f870f4ae
