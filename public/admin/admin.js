@@ -9,6 +9,9 @@ const startAnsweringBtn = document.getElementById('startAnsweringBtn');
 const revealBtn = document.getElementById('revealBtn');
 const finalizeBtn = document.getElementById('finalizeBtn');
 const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+const endGameBtn = document.getElementById('endGameBtn');
+const newSessionBtn = document.getElementById('newSessionBtn');
+const resetAllSessionsBtn = document.getElementById('resetAllSessionsBtn');
 
 const startQuestionCard = document.getElementById('startQuestionCard');
 const questionSelect = document.getElementById('questionSelect');
@@ -20,6 +23,14 @@ const newQuestionText = document.getElementById('newQuestionText');
 const newQuestionDifficulty = document.getElementById('newQuestionDifficulty');
 const addQuestionBtn = document.getElementById('addQuestionBtn');
 const questionBankList = document.getElementById('questionBankList');
+const qbankCard = document.getElementById('qbankCard');
+const qbankHeader = qbankCard.querySelector('.qbank-header');
+const qbankCount = document.getElementById('qbankCount');
+
+// Curtain toggle: click the question bank header to expand/collapse.
+qbankHeader.addEventListener('click', () => {
+  qbankCard.classList.toggle('collapsed');
+});
 
 const scoringCard = document.getElementById('scoringCard');
 const scoringGrid = document.getElementById('scoringGrid');
@@ -31,6 +42,11 @@ const teamsBody = document.getElementById('teamsBody');
 
 const scoreboardBody = document.getElementById('scoreboardBody');
 const toast = document.getElementById('toast');
+
+const sessionTitle = document.getElementById('sessionTitle');
+const sessionStatus = document.getElementById('sessionStatus');
+const sessionWinner = document.getElementById('sessionWinner');
+const sessionHistory = document.getElementById('sessionHistory');
 
 const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
@@ -115,9 +131,33 @@ revealBtn.onclick = () => socket.emit('admin:reveal');
 finalizeBtn.onclick = () => socket.emit('admin:finalizeScoring');
 nextQuestionBtn.onclick = () => socket.emit('admin:nextQuestion');
 
+endGameBtn.onclick = () => {
+  if (!confirm('End this game and announce the current winner?')) return;
+  socket.emit('admin:endGame');
+};
+
+newSessionBtn.onclick = () => {
+  if (!confirm('Start a new session? The current session score will be reset to 0. Teams and the question bank will stay.')) return;
+  socket.emit('admin:startNewSession');
+};
+
+resetAllSessionsBtn.onclick = () => {
+  if (!confirm('Reset ALL session history and return to Session 1? This will clear all current scores and answers, but keep teams, players, and the question bank.')) return;
+  socket.emit('admin:resetAllSessions');
+};
+
 function render() {
   if (!latestState) return;
-  const { phase, question, questionBank, teams, reveal, scoreboard } = latestState;
+  const {
+    phase,
+    question,
+    questionBank,
+    teams,
+    reveal,
+    scoreboard,
+    session,
+    sessionHistory: history = [],
+  } = latestState;
 
   phaseBadge.textContent = phase;
   currentQuestionLabel.textContent = question
@@ -130,6 +170,13 @@ function render() {
   revealBtn.disabled = phase !== 'ANSWERING';
   finalizeBtn.disabled = phase !== 'REVEALED';
   nextQuestionBtn.disabled = phase !== 'SCORED';
+  endGameBtn.disabled = phase !== 'SCORED';
+  newSessionBtn.disabled = phase !== 'SESSION_ENDED';
+  resetAllSessionsBtn.disabled = false;
+
+  startQuestionCard.style.display = phase === 'SESSION_ENDED' ? 'none' : 'block';
+
+  renderSession(session, history);
 
   scoringCard.style.display = phase === 'REVEALED' || phase === 'SCORED' ? 'block' : 'none';
   if (phase === 'REVEALED' || phase === 'SCORED') renderScoring(reveal || [], question);
@@ -139,9 +186,66 @@ function render() {
   renderScoreboard(scoreboard || []);
 }
 
+function renderSession(session, history) {
+  const number = session?.number || 1;
+  sessionTitle.textContent = `Session ${number}`;
+
+  if (latestState.phase === 'SESSION_ENDED') {
+    sessionStatus.textContent = 'Game finished. The winner has been recorded.';
+  } else {
+    sessionStatus.textContent = 'Current session is active.';
+  }
+
+  sessionWinner.style.display = 'none';
+  sessionWinner.innerHTML = '';
+
+  if (session?.winner) {
+    sessionWinner.style.display = 'block';
+    sessionWinner.innerHTML = `
+      <span class="winner-label">Current winner</span>
+      <strong>🏆 ${escapeHtml(session.winner.teamName)}</strong>
+      <span>${session.winner.score} pts</span>
+    `;
+  }
+
+  sessionHistory.innerHTML = '';
+
+  if (!history.length) {
+    const empty = document.createElement('div');
+    empty.className = 'session-history-empty';
+    empty.textContent = 'No completed sessions yet.';
+    sessionHistory.appendChild(empty);
+    return;
+  }
+
+  const heading = document.createElement('div');
+  heading.className = 'session-history-heading';
+  heading.textContent = 'Completed sessions';
+  sessionHistory.appendChild(heading);
+
+  for (const item of [...history].reverse()) {
+    const row = document.createElement('div');
+    row.className = 'session-history-row';
+
+    const winner = item.winner
+      ? `🏆 ${escapeHtml(item.winner.teamName)} — ${item.winner.score} pts`
+      : 'No winner';
+
+    row.innerHTML = `
+      <div class="session-history-number">Session ${item.sessionNumber}</div>
+      <div class="session-history-winner">${winner}</div>
+    `;
+
+    sessionHistory.appendChild(row);
+  }
+}
+
 function renderQuestionBank(questionBank) {
   // Preserve current dropdown selection across re-renders
   const previouslySelected = questionSelect.value;
+
+  // Live count badge in the collapsed header.
+  qbankCount.textContent = `${questionBank.length} question${questionBank.length === 1 ? '' : 's'}`;
 
   questionSelect.innerHTML = '';
   if (questionBank.length === 0) {

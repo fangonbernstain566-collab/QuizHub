@@ -92,3 +92,17 @@ automatically on first run — teams, questions, answers, and scores all
 persist across restarts. If the server restarts mid-timer, the round resets
 to `ASK_QUESTION` for that question rather than leaving it stuck, so the host
 just clicks Start Answering again.
+
+
+## Game sessions
+
+The Admin panel also supports finishing a complete game and starting another
+session without changing the question bank or teams. After the last question is
+finalized, click **End game**. QuizHub freezes the final standings, announces the
+highest-scoring team on the Display page, and records the winner in the Admin
+panel's in-memory session history. Click **Start new session** to reset the
+current scores, answers, and asked-question history back to zero while keeping
+teams, players, and the question bank.
+
+Session history is intentionally **in memory only** and is cleared when the Node
+server is restarted. No new database tables are required for this feature.

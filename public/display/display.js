@@ -6,6 +6,10 @@ const difficultyBadge = document.getElementById('difficultyBadge');
 const questionText = document.getElementById('questionText');
 const questionCard = document.getElementById('questionCard');
 const revealCard = document.getElementById('revealCard');
+const finalGameCard = document.getElementById('finalGameCard');
+const finalSessionLabel = document.getElementById('finalSessionLabel');
+const finalWinner = document.getElementById('finalWinner');
+const finalScore = document.getElementById('finalScore');
 const scoreboardCard = document.getElementById('scoreboardCard');
 const timerWrap = document.getElementById('timerWrap');
 const statusLine = document.getElementById('statusLine');
@@ -33,18 +37,37 @@ function render(state) {
     reveal = null,
     scoreboard = [],
     teams = [],
+    session = null,
+    finalScoreboard = [],
   } = state;
 
-  const isIdle = phase === 'IDLE' || !question;
+  const isSessionEnded = phase === 'SESSION_ENDED';
+  const isIdle = phase === 'IDLE' || (!question && !isSessionEnded);
   const isReveal = phase === 'REVEALED' || phase === 'SCORED';
   const isAnswering = phase === 'ANSWERING' && !!timerEndAt;
 
   idleMsg.style.display = 'none';
   questionCard.style.display = 'none';
   revealCard.style.display = 'none';
+  finalGameCard.style.display = 'none';
   timerWrap.style.display = isAnswering ? 'block' : 'none';
 
-  if (isIdle) {
+  if (isSessionEnded) {
+    finalGameCard.style.display = 'flex';
+    stopTicking();
+    timerEl.textContent = '';
+
+    const winner = session?.winner || finalScoreboard[0] || null;
+    finalSessionLabel.textContent = `Session ${session?.number || 1}`;
+
+    if (winner) {
+      finalWinner.textContent = `🏆 ${winner.teamName}`;
+      finalScore.textContent = `${winner.score ?? winner.total ?? 0} pts`;
+    } else {
+      finalWinner.textContent = 'No winner';
+      finalScore.textContent = '';
+    }
+  } else if (isIdle) {
     idleMsg.style.display = 'block';
     stopTicking();
     timerEl.textContent = '';
@@ -81,11 +104,12 @@ function render(state) {
   // The big centered scoreboard only makes sense on the idle screen — once a
   // question is live (or being revealed), it scrolls off screen, so swap to
   // a small pinned panel in the corner instead.
-  scoreboardCard.style.display = isIdle ? 'block' : 'none';
-  floatingLeaderboard.style.display = isIdle ? 'none' : 'block';
+  scoreboardCard.style.display = (isIdle || isSessionEnded) ? 'block' : 'none';
+  floatingLeaderboard.style.display = (!isIdle && !isSessionEnded) ? 'block' : 'none';
 
-  renderScoreboard(scoreboard || []);
-  renderFloatingLeaderboard(scoreboard || []);
+  const visibleScoreboard = isSessionEnded ? (finalScoreboard || scoreboard || []) : (scoreboard || []);
+  renderScoreboard(visibleScoreboard);
+  renderFloatingLeaderboard(visibleScoreboard);
 }
 
 function renderFloatingLeaderboard(scoreboard) {

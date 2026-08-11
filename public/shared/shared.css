@@ -1,223 +1,742 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* =========================================================
+   QUIZHUB GLOBAL THEME
+   ========================================================= */
 
 :root {
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f4f4f4;
-  --line: #1a1a1a;
-  --line-soft: #d9d9d9;
-  --text: #111111;
-  --muted: #6b6b6b;
-  --faint: #a3a3a3;
-  --inverse-bg: #111111;
-  --inverse-text: #ffffff;
+
+  /* Main colors */
+  --bg: #F5F5F5;
+
+  --surface: #FFFFFF;
+
+  --surface-2: #F4F4F4;
+
+  /* Borders */
+  --line: #35267E;
+
+  --line-soft: #D9D9D9;
+
+  /* Text */
+  --text: #1F2027;
+
+  --muted: #3C3F46;
+
+  --faint: #8A8C94;
+
+  /* Inverse */
+  --inverse-bg: #35267E;
+
+  --inverse-text: #FFFFFF;
+
+  /* QuizHub colors */
+  --primary: #35267E;
+
+  --navy-top: #443099;
+
+  --navy-bottom: #241A55;
+
+  --secondary: #86CDEF;
+
+  --accent: #D24D31;
+
+  --accent-deep: #C24226;
+
+  --gold: #C4B584;
+
+  --gold-soft: #E4DABE;
+
+  --sky-soft: #DCF0FB;
+
+  /* Shape */
   --radius: 3px;
+
+  /* Fonts */
   --font-display: 'Archivo', -apple-system, sans-serif;
+
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d0d0d;
-    --surface: #0d0d0d;
-    --surface-2: #191919;
-    --line: #e8e8e8;
-    --line-soft: #333333;
-    --text: #f2f2f2;
-    --muted: #9a9a9a;
-    --faint: #5c5c5c;
-    --inverse-bg: #f2f2f2;
-    --inverse-text: #0d0d0d;
-  }
-}
+
+/* =========================================================
+   BODY
+   ========================================================= */
 
 body {
+
   font-family: var(--font-display);
+
   font-size: 14px;
+
   color: var(--text);
+
   background: var(--bg);
+
   line-height: 1.5;
+
   -webkit-font-smoothing: antialiased;
 }
 
+
+/* =========================================================
+   CONTAINER
+   ========================================================= */
+
 .container {
+
   max-width: 880px;
+
   margin: 0 auto;
+
   padding: 28px 18px 60px;
 }
 
+
+/* =========================================================
+   HEADINGS
+   ========================================================= */
+
 h1 {
+
   font-size: 15px;
+
   font-weight: 700;
+
   text-transform: uppercase;
+
   letter-spacing: 0.14em;
+
   margin-bottom: 24px;
+
   padding-bottom: 14px;
+
   border-bottom: 1px solid var(--line);
 }
 
+
 h2 {
+
   font-size: 11px;
+
   font-weight: 700;
+
   text-transform: uppercase;
+
   letter-spacing: 0.1em;
+
   color: var(--muted);
+
   margin-bottom: 14px;
 }
 
-p { margin: 0; }
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+
+p {
+  margin: 0;
+}
+
+
+.muted {
+
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+
+.faint {
+
+  color: var(--faint);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   CARDS
+   ========================================================= */
 
 .card {
+
   background: var(--surface);
+
   border: 1px solid var(--line);
+
   border-radius: var(--radius);
+
   padding: 18px;
+
   margin-bottom: 14px;
 }
 
-.muted { color: var(--muted); font-size: 13px; }
-.faint { color: var(--faint); font-size: 12px; }
+
+/* =========================================================
+   LABELS
+   ========================================================= */
 
 label {
+
   display: block;
+
   font-size: 10px;
+
   font-weight: 700;
+
   text-transform: uppercase;
+
   letter-spacing: 0.1em;
+
   color: var(--muted);
+
   margin-bottom: 6px;
 }
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
 
 input[type=text],
 input[type=number],
 textarea {
+
   width: 100%;
+
   padding: 10px 12px;
+
   font-size: 14px;
+
   font-family: var(--font-display);
-  background: var(--bg);
+
+  background: var(--surface);
+
   border: 1px solid var(--line-soft);
+
   border-radius: var(--radius);
+
   color: var(--text);
+
   outline: none;
-  transition: border-color 0.12s;
+
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
+
+
 input::placeholder,
-textarea::placeholder { color: var(--faint); }
+textarea::placeholder {
+
+  color: var(--faint);
+}
+
+
 input:focus,
-textarea:focus { border-color: var(--line); }
-textarea { resize: vertical; font-family: var(--font-display); }
+textarea:focus {
+
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 2px rgba(53, 38, 126, 0.12);
+}
+
+
+textarea {
+
+  resize: vertical;
+
+  font-family: var(--font-display);
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
 
 button {
+
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
+
   gap: 6px;
+
   padding: 9px 16px;
+
   font-size: 12px;
+
   font-weight: 700;
+
   font-family: var(--font-display);
+
   text-transform: uppercase;
+
   letter-spacing: 0.06em;
+
   border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--text);
+
+  border: 1px solid var(--primary);
+
+  background: var(--surface);
+
+  color: var(--primary);
+
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, opacity 0.12s;
+
+  transition:
+    background 0.12s,
+    color 0.12s,
+    opacity 0.12s,
+    border-color 0.12s;
 }
-button:hover { background: var(--surface-2); }
-button.primary { background: var(--inverse-bg); color: var(--inverse-text); border-color: var(--inverse-bg); }
-button.primary:hover { opacity: 0.85; }
-button.secondary { background: transparent; }
-button:disabled { opacity: 0.32; cursor: not-allowed; pointer-events: none; }
+
+
+button:hover {
+
+  background: var(--sky-soft);
+
+  color: var(--primary);
+
+  border-color: var(--primary);
+}
+
+
+button.primary {
+
+  background: var(--primary);
+
+  color: var(--inverse-text);
+
+  border-color: var(--primary);
+}
+
+
+button.primary:hover {
+
+  background: var(--navy-top);
+
+  color: #FFFFFF;
+
+  border-color: var(--navy-top);
+
+  opacity: 1;
+}
+
+
+button.secondary {
+
+  background: transparent;
+
+  color: var(--primary);
+
+  border-color: var(--primary);
+}
+
+
+button.secondary:hover {
+
+  background: var(--primary);
+
+  color: #FFFFFF;
+}
+
+
+button:disabled {
+
+  opacity: 0.32;
+
+  cursor: not-allowed;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   BADGES
+   ========================================================= */
 
 .badge {
+
   display: inline-block;
+
   padding: 3px 9px;
+
   border-radius: var(--radius);
+
   font-size: 10px;
+
   font-weight: 700;
+
   text-transform: uppercase;
+
   letter-spacing: 0.08em;
+
   border: 1px solid var(--line-soft);
+
   color: var(--muted);
+
+  background: transparent;
 }
-.badge.active { border-color: var(--line); color: var(--text); }
-.badge.done   { background: var(--inverse-bg); color: var(--inverse-text); border-color: var(--inverse-bg); }
+
+
+.badge.active {
+
+  border-color: var(--primary);
+
+  color: var(--primary);
+}
+
+
+.badge.done {
+
+  background: var(--primary);
+
+  color: var(--inverse-text);
+
+  border-color: var(--primary);
+}
+
+
+/* =========================================================
+   TIMER
+   ========================================================= */
 
 .timer {
+
   font-family: var(--font-mono);
+
   font-size: 44px;
+
   font-weight: 700;
+
   letter-spacing: -0.02em;
-  color: var(--text);
+
+  color: var(--primary);
+
   line-height: 1;
+
   font-variant-numeric: tabular-nums;
 }
 
-.row  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.col  { display: flex; flex-direction: column; gap: 12px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
 
-.divider { height: 1px; background: var(--line-soft); margin: 16px 0; }
+/* =========================================================
+   FLEX UTILITIES
+   ========================================================= */
 
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.row {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+
+.col {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(200px, 1fr)
+    );
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.divider {
+
+  height: 1px;
+
+  background: var(--line-soft);
+
+  margin: 16px 0;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+table {
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 13px;
+}
+
+
 th {
+
   font-size: 10px;
+
   font-weight: 700;
+
   text-transform: uppercase;
+
   letter-spacing: 0.08em;
+
   color: var(--muted);
+
   padding: 8px 6px;
+
   border-bottom: 1px solid var(--line);
+
   text-align: left;
 }
-td { padding: 10px 6px; border-bottom: 1px solid var(--line-soft); color: var(--text); }
-tr:last-child td { border-bottom: none; }
 
-.answer-tile {
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  padding: 12px;
-}
-.answer-tile .team-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.answer-tile .points {
-  font-family: var(--font-mono);
-  font-weight: 700;
+
+td {
+
+  padding: 10px 6px;
+
+  border-bottom: 1px solid var(--line-soft);
+
   color: var(--text);
 }
 
-#toast {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  background: var(--inverse-bg);
-  color: var(--inverse-text);
-  padding: 10px 18px;
+
+tr:last-child td {
+
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   ANSWER TILES
+   ========================================================= */
+
+.answer-tile {
+
+  background: var(--surface);
+
+  border: 1px solid var(--line-soft);
+
   border-radius: var(--radius);
+
+  padding: 12px;
+}
+
+
+/* Team name */
+
+.answer-tile .team-label {
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+
+  color: var(--primary);
+
+  margin-bottom: 6px;
+}
+
+
+/* Answer text */
+
+.answer-tile .answer-text {
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   ANSWER POINTS
+   ========================================================= */
+
+/*
+ * IMPORTANT FIX:
+ *
+ * Previously this used --text, which becomes almost white
+ * when the browser's dark-mode media query is active.
+ *
+ * The answer cards are white, so points need a dark,
+ * high-contrast color.
+ */
+
+.answer-tile .points {
+
+  font-family: var(--font-mono);
+
+  font-weight: 700;
+
+  color: var(--accent);
+
+  font-size: 14px;
+
+  margin-top: 8px;
+}
+
+
+/* Pending points */
+
+.answer-tile .points.pending {
+
+  color: var(--muted);
+
+  font-family: var(--font-mono);
+
+  font-weight: 500;
+
+  font-style: italic;
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+#toast {
+
+  position: fixed;
+
+  left: 50%;
+
+  bottom: 24px;
+
+  transform: translateX(-50%);
+
+  background: var(--inverse-bg);
+
+  color: var(--inverse-text);
+
+  padding: 10px 18px;
+
+  border-radius: var(--radius);
+
   font-size: 12px;
+
   font-weight: 600;
+
   display: none;
+
   max-width: 90vw;
+
   text-align: center;
+
   z-index: 999;
 }
 
-::selection { background: var(--text); color: var(--bg); }
 
-/* ---- Difficulty badges ---- */
-.badge.diff-easy   { border-style: dotted; }
-.badge.diff-medium { border-style: dashed; }
-.badge.diff-hard    { background: var(--inverse-bg); color: var(--inverse-text); border-color: var(--inverse-bg); }
+/* Error toast */
+
+#toast.error {
+
+  background: var(--accent-deep);
+
+  color: #FFFFFF;
+}
+
+
+/* =========================================================
+   TEXT SELECTION
+   ========================================================= */
+
+::selection {
+
+  background: var(--primary);
+
+  color: var(--inverse-text);
+}
+
+
+/* =========================================================
+   DIFFICULTY BADGES
+   ========================================================= */
+
+.badge.diff-easy {
+
+  border-style: dotted;
+}
+
+
+.badge.diff-medium {
+
+  border-style: dashed;
+}
+
+
+.badge.diff-hard {
+
+  background: var(--primary);
+
+  color: var(--inverse-text);
+
+  border-color: var(--primary);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 720px) {
+
+  .container {
+
+    padding: 20px 14px 40px;
+  }
+
+  .card {
+
+    padding: 16px;
+  }
+
+  .timer {
+
+    font-size: 38px;
+  }
+
+  .answer-tile .points {
+
+    font-size: 13px;
+  }
+
+}

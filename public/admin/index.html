@@ -2,139 +2,662 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1"
+/>
+
 <title>QuizHub — Admin</title>
-<link rel="stylesheet" href="/shared/shared.css" />
-<link rel="stylesheet" href="admin.css" />
+
+<link
+  rel="stylesheet"
+  href="/shared/shared.css"
+/>
+
+<link
+  rel="stylesheet"
+  href="admin.css"
+/>
+
 </head>
+
 <body class="admin-view">
 
-<!-- Sticky control bar -->
+
+<!-- =====================================================
+     STICKY CONTROL BAR
+     ===================================================== -->
+
 <div class="card control-bar">
+
   <div class="control-bar-inner">
+
     <div class="control-bar-left">
-      <span class="brand">QuizHub — GM</span>
+
+      <span class="brand">
+        QuizHub — GM
+      </span>
+
+
       <div class="phase-pill">
-        <span class="label">Phase</span>
-        <span class="badge" id="phaseBadge">—</span>
+
+        <span class="label">
+          Phase
+        </span>
+
+        <span
+          class="badge"
+          id="phaseBadge"
+        >
+          —
+        </span>
+
       </div>
-      <span class="muted" id="currentQuestionLabel"></span>
+
+
+      <span
+        class="muted"
+        id="currentQuestionLabel"
+      ></span>
+
     </div>
+
+
     <div class="btn-row">
-      <button id="startAnsweringBtn" class="primary" disabled>Start answering</button>
-      <button id="revealBtn" disabled>Reveal answers</button>
-      <button id="finalizeBtn" disabled>Finalize scoring</button>
-      <button id="nextQuestionBtn" class="secondary" disabled>Next round →</button>
+
+      <button
+        id="startAnsweringBtn"
+        class="primary"
+        disabled
+      >
+        Start answering
+      </button>
+
+
+      <button
+        id="revealBtn"
+        disabled
+      >
+        Reveal answers
+      </button>
+
+
+      <button
+        id="finalizeBtn"
+        disabled
+      >
+        Finalize scoring
+      </button>
+
+
+      <button
+        id="nextQuestionBtn"
+        class="secondary"
+        disabled
+      >
+        Next round →
+      </button>
+
+      <button
+        id="endGameBtn"
+        class="danger"
+        disabled
+      >
+        End game
+      </button>
+
+      <button
+        id="newSessionBtn"
+        class="session-new"
+        disabled
+      >
+        Start new session
+      </button>
+
+      <button
+        id="resetAllSessionsBtn"
+        class="danger"
+        disabled
+      >
+        Reset all sessions
+      </button>
+
     </div>
+
   </div>
+
 </div>
+
+
+
+<!-- =====================================================
+     MAIN CONTAINER
+     ===================================================== -->
 
 <div class="container">
+
   <div class="page-grid">
 
-    <!-- Main workflow column -->
+
+    <!-- =================================================
+         MAIN WORKFLOW COLUMN
+         ================================================= -->
+
     <div class="main-col">
 
-      <div class="card" id="questionBankCard">
-        <p class="section-label">Setup</p>
-        <p class="section-title">Question bank</p>
-        <p class="section-desc">Add premade questions once — reuse them across rounds. Difficulty sets the default points.</p>
-        <div class="col" style="margin-bottom: 20px;">
-          <div>
-            <label for="newQuestionText">Question text</label>
-            <textarea id="newQuestionText" rows="2" placeholder="What year did the Berlin Wall fall?"></textarea>
+
+      <!-- ===============================================
+           QUESTION BANK
+           =============================================== -->
+
+      <div
+        class="card"
+        id="qbankCard"
+      >
+
+        <div class="qbank-header">
+
+          <div class="qbank-header-text">
+
+            <p class="section-label">
+              Setup
+            </p>
+
+
+            <p class="section-title">
+              Question bank
+            </p>
+
+
+            <p class="section-desc">
+              Add premade questions once — reuse them
+              across rounds. Difficulty sets the default
+              points.
+            </p>
+
           </div>
-          <div class="field-row">
-            <div class="field-group">
-              <label for="newQuestionDifficulty">Difficulty</label>
-              <select id="newQuestionDifficulty" style="padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--admin-surface); color: var(--text); font-family: var(--font-display);">
-                <option value="easy">Easy — 10 pts</option>
-                <option value="medium" selected>Medium — 20 pts</option>
-                <option value="hard">Hard — 30 pts</option>
-              </select>
+
+
+          <span class="qbank-toggle">
+
+            <span id="qbankCount">
+              0 questions
+            </span>
+
+            <span class="chev">
+              ▾
+            </span>
+
+          </span>
+
+        </div>
+
+
+
+        <!-- =============================================
+             QUESTION BANK BODY
+             ============================================= -->
+
+        <div class="qbank-body">
+
+
+          <div
+            class="col"
+            style="margin-bottom: 12px;"
+          >
+
+
+            <!-- QUESTION TEXT -->
+
+            <div>
+
+              <label for="newQuestionText">
+                Question text
+              </label>
+
+
+              <textarea
+                id="newQuestionText"
+                rows="3"
+                placeholder="What year did the Berlin Wall fall?"
+              ></textarea>
+
             </div>
-            <button id="addQuestionBtn" class="primary">Add question</button>
+
+
+
+            <!-- DIFFICULTY + ADD BUTTON -->
+
+            <div class="field-row">
+
+
+              <div class="field-group">
+
+                <label for="newQuestionDifficulty">
+                  Difficulty
+                </label>
+
+
+                <select
+                  id="newQuestionDifficulty"
+                  style="
+                    padding: 10px 12px;
+                    font-size: 13px;
+                    border: 1px solid var(--line-soft);
+                    border-radius: var(--radius);
+                    background: var(--admin-surface);
+                    color: var(--text);
+                    font-family: var(--font-display);
+                  "
+                >
+
+                  <option value="easy">
+                    Easy — 10 pts
+                  </option>
+
+
+                  <option
+                    value="medium"
+                    selected
+                  >
+                    Medium — 20 pts
+                  </option>
+
+
+                  <option value="hard">
+                    Hard — 30 pts
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <button
+                id="addQuestionBtn"
+                class="primary"
+              >
+                Add question
+              </button>
+
+            </div>
+
           </div>
+
+
+
+          <!-- ===========================================
+               EXISTING QUESTIONS
+               =========================================== -->
+
+          <div
+            id="questionBankList"
+            class="col"
+          ></div>
+
+
         </div>
-        <div id="questionBankList" class="col"></div>
+
       </div>
 
-      <div class="card" id="startQuestionCard">
-        <p class="section-label">Step</p>
-        <p class="section-title">Start question</p>
-        <p class="section-desc">Pick a question from the bank, set a round and time limit, then start it.</p>
+
+
+      <!-- ===============================================
+           START QUESTION
+           =============================================== -->
+
+      <div
+        class="card"
+        id="startQuestionCard"
+      >
+
+        <p class="section-label">
+          Step
+        </p>
+
+
+        <p class="section-title">
+          Start question
+        </p>
+
+
+        <p class="section-desc">
+          Pick a question from the bank, set a round
+          and time limit, then start it.
+        </p>
+
+
         <div class="field-row">
-          <div class="field-group" style="flex: 1; min-width: 220px;">
-            <label for="questionSelect">Question</label>
-            <select id="questionSelect" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--admin-surface); color: var(--text); font-family: var(--font-display);">
-              <option value="">Add a question to the bank first</option>
+
+
+          <!-- QUESTION SELECT -->
+
+          <div
+            class="field-group"
+            style="
+              flex: 1;
+              min-width: 220px;
+            "
+          >
+
+            <label for="questionSelect">
+              Question
+            </label>
+
+
+            <select
+              id="questionSelect"
+              style="
+                width: 100%;
+                padding: 12px 14px;
+                font-size: 14px;
+                border: 1px solid var(--line-soft);
+                border-radius: var(--radius);
+                background: var(--admin-surface);
+                color: var(--text);
+                font-family: var(--font-display);
+              "
+            >
+
+              <option value="">
+                Add a question to the bank first
+              </option>
+
             </select>
+
           </div>
+
+
+
+          <!-- ROUND -->
+
           <div class="field-group">
-            <label for="startRound">Round #</label>
-            <input type="number" id="startRound" value="1" min="1" style="width: 100px;" />
+
+            <label for="startRound">
+              Round #
+            </label>
+
+
+            <input
+              type="number"
+              id="startRound"
+              value="1"
+              min="1"
+              style="width: 100px;"
+            />
+
           </div>
+
+
+
+          <!-- TIME -->
+
           <div class="field-group">
-            <label for="startTime">Time limit (sec)</label>
-            <input type="number" id="startTime" value="30" min="5" style="width: 140px;" />
+
+            <label for="startTime">
+              Time limit (sec)
+            </label>
+
+
+            <input
+              type="number"
+              id="startTime"
+              value="30"
+              min="5"
+              style="width: 140px;"
+            />
+
           </div>
-          <button id="startQuestionBtn" class="primary" disabled>Start question</button>
+
+
+
+          <!-- START -->
+
+          <button
+            id="startQuestionBtn"
+            class="primary"
+            disabled
+          >
+            Start question
+          </button>
+
         </div>
+
       </div>
 
-      <div class="card" id="scoringCard">
-        <p class="section-label">Step</p>
-        <p class="section-title">Score this question</p>
-        <p class="section-desc">Award points per team, then finalize to lock scores in.</p>
-        <div class="grid" id="scoringGrid"></div>
+
+
+      <!-- ===============================================
+           SCORING
+           =============================================== -->
+
+      <div
+        class="card"
+        id="scoringCard"
+      >
+
+        <p class="section-label">
+          Step
+        </p>
+
+
+        <p class="section-title">
+          Score this question
+        </p>
+
+
+        <p class="section-desc">
+          Award points per team, then finalize to lock
+          scores in.
+        </p>
+
+
+        <div
+          class="grid"
+          id="scoringGrid"
+        ></div>
+
       </div>
+
 
     </div>
 
-    <!-- Sidebar: teams + scoreboard -->
+
+
+    <!-- =================================================
+         SIDEBAR
+         ================================================= -->
+
     <div class="side-col">
 
-      <div class="card" id="teamsCard">
-        <p class="section-title" style="font-size: 15px; margin-bottom: 16px;">Teams</p>
-        <div class="row">
-          <input type="text" id="newTeamName" placeholder="Team name" maxlength="40" style="flex: 1;" />
-          <input type="text" id="newTeamPassword" placeholder="Password" maxlength="40" style="flex: 1;" />
-          <button id="addTeamBtn">Add</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Team</th>
-              <th class="status-cell">Status</th>
-              <th class="players-cell">#</th>
-            </tr>
-          </thead>
-          <tbody id="teamsBody"></tbody>
-        </table>
+
+      <!-- ===============================================
+           SESSION CONTROL
+           =============================================== -->
+
+      <div
+        class="card session-card"
+        id="sessionCard"
+      >
+
+        <p class="section-label">Game session</p>
+
+        <p class="section-title" id="sessionTitle">Session 1</p>
+
+        <p class="session-status" id="sessionStatus">Current session is active.</p>
+
+        <div id="sessionWinner" class="session-winner" style="display: none;"></div>
+
+        <div class="session-history" id="sessionHistory"></div>
+
       </div>
 
-      <div class="card" id="scoreboardCard">
-        <p class="section-title" style="font-size: 15px; margin-bottom: 16px;">Scoreboard</p>
+
+      <!-- ===============================================
+           TEAMS
+           =============================================== -->
+
+      <div
+        class="card"
+        id="teamsCard"
+      >
+
+        <p
+          class="section-title"
+          style="
+            font-size: 15px;
+            margin-bottom: 16px;
+          "
+        >
+          Teams
+        </p>
+
+
+        <div class="row">
+
+          <input
+            type="text"
+            id="newTeamName"
+            placeholder="Team name"
+            maxlength="40"
+            style="flex: 1;"
+          />
+
+
+          <input
+            type="text"
+            id="newTeamPassword"
+            placeholder="Password"
+            maxlength="40"
+            style="flex: 1;"
+          />
+
+
+          <button
+            id="addTeamBtn"
+          >
+            Add
+          </button>
+
+        </div>
+
+
+
         <table>
+
           <thead>
+
             <tr>
-              <th style="width: 24px;"></th>
-              <th>Team</th>
-              <th style="text-align: right;">Score</th>
+
+              <th>
+                Team
+              </th>
+
+
+              <th class="status-cell">
+                Status
+              </th>
+
+
+              <th class="players-cell">
+                #
+              </th>
+
             </tr>
+
           </thead>
-          <tbody id="scoreboardBody"></tbody>
+
+
+          <tbody
+            id="teamsBody"
+          ></tbody>
+
         </table>
+
       </div>
+
+
+
+      <!-- ===============================================
+           SCOREBOARD
+           =============================================== -->
+
+      <div
+        class="card"
+        id="scoreboardCard"
+      >
+
+        <p
+          class="section-title"
+          style="
+            font-size: 15px;
+            margin-bottom: 16px;
+          "
+        >
+          Scoreboard
+        </p>
+
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th
+                style="width: 24px;"
+              ></th>
+
+
+              <th>
+                Team
+              </th>
+
+
+              <th
+                style="text-align: right;"
+              >
+                Score
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody
+            id="scoreboardBody"
+          ></tbody>
+
+        </table>
+
+      </div>
+
 
     </div>
 
   </div>
+
 </div>
+
+
+
+<!-- =====================================================
+     TOAST
+     ===================================================== -->
 
 <div id="toast"></div>
 
+
+
+<!-- =====================================================
+     SOCKET.IO + ADMIN JS
+     ===================================================== -->
+
 <script src="/socket.io/socket.io.js"></script>
+
 <script src="admin.js"></script>
+
 </body>
 </html>
