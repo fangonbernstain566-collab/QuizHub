@@ -7,6 +7,7 @@ const questionText = document.getElementById('questionText');
 const questionCard = document.getElementById('questionCard');
 const revealCard = document.getElementById('revealCard');
 const scoreboardCard = document.getElementById('scoreboardCard');
+const timerWrap = document.getElementById('timerWrap');
 const statusLine = document.getElementById('statusLine');
 const timerEl = document.getElementById('timer');
 const progressBadge = document.getElementById('progressBadge');
@@ -26,16 +27,23 @@ socket.on('state:update', (state) => render(state));
 function render(state) {
   const { phase, question, timerEndAt, answeredTeamIds, reveal, scoreboard, teams } = state;
 
+  const isIdle = phase === 'IDLE' || !question;
+  const isReveal = phase === 'REVEALED' || phase === 'SCORED';
+  const isAnswering = phase === 'ANSWERING' && !!timerEndAt;
+
   idleMsg.style.display = 'none';
   questionCard.style.display = 'none';
   revealCard.style.display = 'none';
+  timerWrap.style.display = isAnswering ? 'block' : 'none';
 
-  if (phase === 'IDLE' || !question) {
+  if (isIdle) {
     idleMsg.style.display = 'block';
     stopTicking();
-  } else if (phase === 'REVEALED' || phase === 'SCORED') {
+    timerEl.textContent = '';
+  } else if (isReveal) {
     revealCard.style.display = 'flex';
     stopTicking();
+    timerEl.textContent = '';
     renderReveal(reveal || [], phase);
   } else if (phase === 'ASK_QUESTION' || phase === 'ANSWERING') {
     questionCard.style.display = 'flex';
@@ -54,7 +62,7 @@ function render(state) {
 
     progressBadge.textContent = `${answeredTeamIds.length} / ${teams.length} teams answered`;
 
-    if (phase === 'ANSWERING' && timerEndAt) {
+    if (isAnswering) {
       startTicking(timerEndAt);
     } else {
       stopTicking();
@@ -65,7 +73,6 @@ function render(state) {
   // The big centered scoreboard only makes sense on the idle screen — once a
   // question is live (or being revealed), it scrolls off screen, so swap to
   // a small pinned panel in the corner instead.
-  const isIdle = phase === 'IDLE' || !question;
   scoreboardCard.style.display = isIdle ? 'block' : 'none';
   floatingLeaderboard.style.display = isIdle ? 'none' : 'block';
 
@@ -103,8 +110,6 @@ function renderReveal(reveal, phase) {
 
     tile.append(label, answer);
 
-    // Points stay hidden while the admin is still scoring (REVEALED) —
-    // only reveal them once scoring is finalized (SCORED).
     if (phase === 'SCORED' && r.points != null) {
       const pts = document.createElement('div');
       pts.className = 'points';
@@ -116,6 +121,7 @@ function renderReveal(reveal, phase) {
       pending.textContent = 'Scoring…';
       tile.appendChild(pending);
     }
+
     revealGrid.appendChild(tile);
   }
 }
@@ -172,7 +178,10 @@ function startTicking(timerEndAt) {
 }
 
 function stopTicking() {
-  if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
+  if (tickHandle) {
+    clearInterval(tickHandle);
+    tickHandle = null;
+  }
 }
 
 function escapeHtml(s) {
