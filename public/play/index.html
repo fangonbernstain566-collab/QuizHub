@@ -2,190 +2,673 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+/>
+
 <title>QuizHub — Play</title>
+
 <link rel="stylesheet" href="/shared/shared.css" />
+
 <style>
-  html, body { height: 100%; }
+
+  html,
+  body {
+    height: 100%;
+  }
 
   body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+
+    background:
+      linear-gradient(
+        180deg,
+        var(--navy-top) 0%,
+        var(--navy-bottom) 100%
+      );
+
+    color: var(--text);
   }
+
 
   .container {
     flex: 1;
     display: flex;
     flex-direction: column;
+
     max-width: 640px;
     width: 100%;
+
     padding: 4vh 24px 40px;
   }
 
-  h1 { font-size: 18px; margin-bottom: 4vh; }
+
+  /* =====================================================
+     HEADER
+     ===================================================== */
+
+  h1 {
+    font-size: 18px;
+    font-weight: 800;
+
+    color: #FFFFFF;
+
+    text-align: center;
+
+    letter-spacing: 0.14em;
+
+    margin-bottom: 4vh;
+
+    padding: 14px 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    border-radius: var(--radius);
+
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+
+  /* =====================================================
+     GAME SCREEN
+     ===================================================== */
 
   #gameScreen {
     display: none;
+
     flex: 1;
     flex-direction: column;
   }
 
-  /* Join screen */
+
+  /* =====================================================
+     JOIN SCREEN
+     ===================================================== */
+
   #joinScreen {
     flex: 1;
+
     display: flex;
     flex-direction: column;
+
     justify-content: center;
+
     max-width: 480px;
     width: 100%;
+
     margin: 0 auto;
+
     padding: 40px 32px;
+
+    background: #FFFFFF;
+
+    border: 1px solid var(--gold);
+
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.18);
   }
-  #joinScreen h2 { font-size: 14px; margin-bottom: 8px; }
-  #joinScreen p.muted { font-size: 15px; margin-bottom: 28px; }
-  #joinScreen label { font-size: 12px; margin-bottom: 8px; }
+
+
+  #joinScreen h2 {
+    font-size: 14px;
+
+    color: var(--primary);
+
+    margin-bottom: 8px;
+  }
+
+
+  #joinScreen p.muted {
+    font-size: 15px;
+
+    margin-bottom: 28px;
+
+    color: var(--muted);
+  }
+
+
+  #joinScreen label {
+    font-size: 12px;
+
+    margin-bottom: 8px;
+  }
+
+
   #joinScreen input {
-    padding: 16px 16px;
+    padding: 16px;
+
     font-size: 17px;
   }
-  #joinScreen .col { gap: 20px; }
+
+
+  #joinScreen .col {
+    gap: 20px;
+  }
+
+
   #joinScreen button {
     padding: 16px;
+
     font-size: 14px;
+
     margin-top: 4px;
   }
 
-  /* Meta bar */
+
+  /* =====================================================
+     META BAR
+     ===================================================== */
+
   .meta-bar {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    color: var(--muted);
-    padding: 16px 20px;
-  }
-  .meta-bar strong { color: var(--text); font-weight: 700; }
 
-  /* Game card */
+    align-items: center;
+
+    justify-content: space-between;
+
+    font-size: 14px;
+
+    color: #FFFFFF;
+
+    padding: 16px 20px;
+
+    background: var(--primary);
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+
+  .meta-bar strong {
+    color: #FFFFFF;
+
+    font-weight: 700;
+  }
+
+
+  /* =====================================================
+     GAME CARD
+     ===================================================== */
+
   #gameCard {
     flex: 1;
+
     display: flex;
     flex-direction: column;
+
     padding: 28px 24px;
+
+    /* CHANGED FROM BLUE TO WHITE */
+    background: #FFFFFF;
+
+    border: 1px solid var(--gold);
+
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.16);
   }
+
+
+  /* =====================================================
+     TIMER
+     ===================================================== */
 
   .timer-row {
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
+
     margin-bottom: 24px;
   }
-  #phaseBadge { font-size: 13px; padding: 6px 14px; }
-  #timer { font-size: 3.5rem; }
+
+
+  #phaseBadge {
+    font-size: 13px;
+
+    padding: 6px 14px;
+  }
+
+
+  #timer {
+    font-size: 3.5rem;
+
+    color: var(--primary);
+  }
+
+
+  .timer.low {
+    color: var(--accent) !important;
+  }
+
+
+  /* =====================================================
+     QUESTION META
+     ===================================================== */
 
   .question-meta {
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
+
     margin-bottom: 12px;
   }
+
+
   #roundLabel {
     font-size: 12px;
+
     font-weight: 700;
+
     text-transform: uppercase;
+
     letter-spacing: 0.1em;
-    color: var(--muted);
+
+    color: var(--primary);
   }
-  #difficultyBadge { font-size: 11px; padding: 4px 10px; }
+
+
+  #difficultyBadge {
+    font-size: 11px;
+
+    padding: 4px 10px;
+  }
+
+
+  /* =====================================================
+     QUESTION
+     ===================================================== */
 
   #questionText {
     font-size: 1.6rem;
+
     font-weight: 700;
+
     color: var(--text);
+
     margin-bottom: 10px;
+
     line-height: 1.35;
   }
 
+
   #status {
     min-height: 20px;
+
     font-size: 14px;
+
     color: var(--muted);
+
     margin-bottom: 20px;
   }
 
-  #answerButtons {
+
+  /* =====================================================
+     FREE ANSWER AREA
+     ===================================================== */
+
+  #answerArea {
     flex: 1;
+
     display: flex;
+
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 16px;
+
+    justify-content: flex-start;
+
+    gap: 14px;
+
+    margin-top: 5px;
   }
 
-  .answer-btn {
-    flex: 1;
-    min-height: 100px;
-    font-size: 2rem;
-    font-weight: 700;
+
+  #answerInput {
+    width: 100%;
+
+    min-height: 120px;
+
+    padding: 20px;
+
+    resize: vertical;
+
+    font-family: var(--font-display);
+
+    font-size: 1.4rem;
+
+    font-weight: 600;
+
+    color: var(--text);
+
+    /* WHITE ANSWER BOX */
+    background: #FFFFFF;
+
+    border: 2px solid var(--line-soft);
+
+    border-radius: var(--radius);
+
+    outline: none;
+
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
   }
 
-  .answer-btn.selected {
-    outline: 4px solid var(--accent, #4f7cff);
-    outline-offset: -4px;
+
+  #answerInput:focus {
+    border-color: var(--primary);
+
+    box-shadow:
+      0 0 0 3px rgba(53, 38, 126, 0.15);
   }
+
+
+  #answerInput:disabled {
+    background: #F4F4F4;
+
+    cursor: not-allowed;
+
+    opacity: 0.7;
+  }
+
+
+  #answerInput::placeholder {
+    color: var(--faint);
+
+    font-weight: 500;
+  }
+
+
+  /* =====================================================
+     SUBMIT BUTTON
+     ===================================================== */
+
+  #submitAnswerBtn {
+    width: 100%;
+
+    min-height: 56px;
+
+    font-size: 14px;
+
+    background: var(--primary);
+
+    color: #FFFFFF;
+
+    border-color: var(--primary);
+  }
+
+
+  #submitAnswerBtn:hover {
+    background: var(--navy-top);
+
+    border-color: var(--navy-top);
+  }
+
+
+  #submitAnswerBtn:disabled {
+    opacity: 0.45;
+  }
+
+
+  /* =====================================================
+     SUBMITTED STATE
+     ===================================================== */
+
+  #submitAnswerBtn.submitted {
+    background: var(--accent);
+
+    border-color: var(--accent);
+
+    color: #FFFFFF;
+
+    opacity: 1;
+  }
+
+
+  #submitAnswerBtn.submitted:hover {
+    background: var(--accent-deep);
+
+    border-color: var(--accent-deep);
+  }
+
+
+  /* =====================================================
+     MOBILE
+     ===================================================== */
+
+  @media (max-width: 520px) {
+
+    .container {
+      padding:
+        20px
+        14px
+        30px;
+    }
+
+
+    #gameCard {
+      padding: 22px 18px;
+    }
+
+
+    #questionText {
+      font-size: 1.4rem;
+    }
+
+
+    #answerInput {
+      min-height: 110px;
+
+      font-size: 1.2rem;
+    }
+
+
+    #timer {
+      font-size: 2.8rem;
+    }
+
+  }
+
 </style>
 </head>
+
+
 <body>
+
 <div class="container">
+
+
+  <!-- ===================================================
+       HEADER
+       =================================================== -->
+
   <h1>QuizHub</h1>
 
-  <!-- Join Screen -->
+
+  <!-- ===================================================
+       JOIN SCREEN
+       =================================================== -->
+
   <div id="joinScreen" class="card">
+
     <h2>Join your team</h2>
-    <p class="muted">Enter your name and the team name given to you by the game master.</p>
+
+    <p class="muted">
+      Enter your name and the team name given to you by the game master.
+    </p>
+
     <div class="col">
+
       <div>
-        <label for="playerName">Your name</label>
-        <input type="text" id="playerName" placeholder="Alex" maxlength="30" autocomplete="off" />
+
+        <label for="playerName">
+          Your name
+        </label>
+
+        <input
+          type="text"
+          id="playerName"
+          placeholder="Alex"
+          maxlength="30"
+          autocomplete="off"
+        />
+
       </div>
+
+
       <div>
-        <label for="teamName">Team name</label>
-        <input type="text" id="teamName" placeholder="Trivia Nerds" maxlength="40" autocomplete="off" />
+
+        <label for="teamName">
+          Team name
+        </label>
+
+        <input
+          type="text"
+          id="teamName"
+          placeholder="Trivia Nerds"
+          maxlength="40"
+          autocomplete="off"
+        />
+
       </div>
-      <button id="joinBtn" class="primary" style="width: 100%;">Join game</button>
+
+
+      <button
+        id="joinBtn"
+        class="primary"
+        style="width: 100%;"
+      >
+        Join game
+      </button>
+
     </div>
+
   </div>
 
-  <!-- Game Screen -->
+
+  <!-- ===================================================
+       GAME SCREEN
+       =================================================== -->
+
   <div id="gameScreen">
+
+
+    <!-- Player / Team -->
+
     <div class="card meta-bar">
-      <span>Playing as <strong id="myPlayerName"></strong> on <strong id="myTeamName"></strong></span>
+
+      <span>
+        Playing as
+        <strong id="myPlayerName"></strong>
+        on
+        <strong id="myTeamName"></strong>
+      </span>
+
     </div>
+
+
+    <!-- Game -->
 
     <div class="card" id="gameCard">
+
+
+      <!-- Timer -->
+
       <div class="timer-row">
-        <span class="badge" id="phaseBadge">Waiting</span>
-        <span class="timer" id="timer"></span>
+
+        <span
+          class="badge"
+          id="phaseBadge"
+        >
+          Waiting
+        </span>
+
+        <span
+          class="timer"
+          id="timer"
+        ></span>
+
       </div>
 
-      <div class="question-meta" id="questionMeta" style="display: none;">
+
+      <!-- Question Meta -->
+
+      <div
+        class="question-meta"
+        id="questionMeta"
+        style="display: none;"
+      >
+
         <span id="roundLabel"></span>
-        <span class="badge" id="difficultyBadge"></span>
+
+        <span
+          class="badge"
+          id="difficultyBadge"
+        ></span>
+
       </div>
-      <div id="questionText" class="muted">Waiting for the host to start a question…</div>
+
+
+      <!-- Question -->
+
+      <div
+        id="questionText"
+        class="muted"
+      >
+        Waiting for the host to start a question…
+      </div>
+
+
+      <!-- Status -->
+
       <div id="status"></div>
 
-      <div id="answerButtons">
-        <button id="answerA" class="answer-btn" disabled>A</button>
-        <button id="answerB" class="answer-btn" disabled>B</button>
+
+      <!-- =================================================
+           FREE ANSWER
+           ================================================= -->
+
+      <div id="answerArea">
+
+        <textarea
+          id="answerInput"
+          placeholder="Type your answer here..."
+          maxlength="500"
+          autocomplete="off"
+          disabled
+        ></textarea>
+
+
+        <button
+          id="submitAnswerBtn"
+          class="primary"
+          disabled
+        >
+          Submit answer
+        </button>
+
       </div>
+
+
     </div>
+
   </div>
+
 </div>
+
 
 <div id="toast"></div>
 
+
 <script src="/socket.io/socket.io.js"></script>
+
 <script src="play.js"></script>
+
 </body>
 </html>

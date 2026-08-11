@@ -17,6 +17,14 @@ const newQuestionText = document.getElementById('newQuestionText');
 const newQuestionDifficulty = document.getElementById('newQuestionDifficulty');
 const addQuestionBtn = document.getElementById('addQuestionBtn');
 const questionBankList = document.getElementById('questionBankList');
+const qbankCard = document.getElementById('qbankCard');
+const qbankHeader = qbankCard.querySelector('.qbank-header');
+const qbankCount = document.getElementById('qbankCount');
+
+// Curtain toggle: click the question bank header to expand/collapse.
+qbankHeader.addEventListener('click', () => {
+  qbankCard.classList.toggle('collapsed');
+});
 
 const scoringCard = document.getElementById('scoringCard');
 const scoringGrid = document.getElementById('scoringGrid');
@@ -119,6 +127,9 @@ function render() {
 function renderQuestionBank(questionBank) {
   // Preserve current dropdown selection across re-renders
   const previouslySelected = questionSelect.value;
+
+  // Live count badge in the collapsed header.
+  qbankCount.textContent = `${questionBank.length} question${questionBank.length === 1 ? '' : 's'}`;
 
   questionSelect.innerHTML = '';
   if (questionBank.length === 0) {
