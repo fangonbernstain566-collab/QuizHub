@@ -26,9 +26,10 @@ const PHASES = {
 const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
 
 class GameManager {
-  constructor(db, io) {
+  constructor(db, io, adminKey) {
     this.db = db;
     this.io = io;
+    this.adminKey = adminKey;
     this.revealTimer = null;
 
     // socket.id -> { role, teamId, playerId }
@@ -66,9 +67,9 @@ class GameManager {
     if (!name) throw new Error('Team name required');
     if (name.length > 40) throw new Error('Team name too long');
     
-    // Optional password default for admin creation
-    password = String(password || '1234');
-    
+    password = String(password || '');
+    if (password.length < 4) throw new Error('Password must be at least 4 characters');
+
     const existing = this.db.prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?)').get(name);
     if (existing) throw new Error('Team name already taken');
     
@@ -287,6 +288,8 @@ class GameManager {
   }
 
   returnToAskQuestion() {
+    if (this.phase !== PHASES.SCORED) throw new Error('Finish scoring before starting the next question');
+    this.clearRevealTimer();
     this.currentQuestionId = null;
     this.phase = PHASES.IDLE;
     this.timerEndAt = null;
@@ -309,29 +312,37 @@ class GameManager {
     socket.on('play:submitAnswer', (payload = {}) => this.onSubmitAnswer(socket, payload));
 
     socket.on('admin:createTeam', (payload = {}) =>
-      this.wrap(socket, () => this.createTeam(payload.name, payload.password))
+      this.wrapAdmin(socket, () => this.createTeam(payload.name, payload.password))
     );
     socket.on('admin:setTeamPassword', (payload = {}) =>
-      this.wrap(socket, () => this.setTeamPassword(payload.teamId, payload.password))
+      this.wrapAdmin(socket, () => this.setTeamPassword(payload.teamId, payload.password))
     );
     socket.on('admin:addQuestion', (payload = {}) =>
-      this.wrap(socket, () => this.addQuestionToBank(payload.text, payload.difficulty))
+      this.wrapAdmin(socket, () => this.addQuestionToBank(payload.text, payload.difficulty))
     );
     socket.on('admin:deleteQuestion', (payload = {}) =>
-      this.wrap(socket, () => this.deleteQuestionFromBank(payload.questionId))
+      this.wrapAdmin(socket, () => this.deleteQuestionFromBank(payload.questionId))
     );
     socket.on('admin:startQuestion', (payload = {}) =>
-      this.wrap(socket, () => this.startQuestion(payload.questionId, payload.roundNumber, payload.timeLimitSeconds))
+      this.wrapAdmin(socket, () => this.startQuestion(payload.questionId, payload.roundNumber, payload.timeLimitSeconds))
     );
-    socket.on('admin:startAnswering', () => this.wrap(socket, () => this.startAnswering()));
-    socket.on('admin:reveal', () => this.wrap(socket, () => this.reveal()));
+    socket.on('admin:startAnswering', () => this.wrapAdmin(socket, () => this.startAnswering()));
+    socket.on('admin:reveal', () => this.wrapAdmin(socket, () => this.reveal()));
     socket.on('admin:setScore', (payload = {}) =>
-      this.wrap(socket, () => this.setScore(payload.teamId, payload.points))
+      this.wrapAdmin(socket, () => this.setScore(payload.teamId, payload.points))
     );
-    socket.on('admin:finalizeScoring', () => this.wrap(socket, () => this.finalizeScoring()));
-    socket.on('admin:nextQuestion', () => this.wrap(socket, () => this.returnToAskQuestion()));
+    socket.on('admin:finalizeScoring', () => this.wrapAdmin(socket, () => this.finalizeScoring()));
+    socket.on('admin:nextQuestion', () => this.wrapAdmin(socket, () => this.returnToAskQuestion()));
 
     socket.on('disconnect', () => this.onDisconnect(socket));
+  }
+
+  wrapAdmin(socket, fn) {
+    const meta = this.sockets.get(socket.id);
+    if (!meta || meta.role !== 'admin') {
+      return socket.emit('error', { message: 'Admin authentication required.' });
+    }
+    this.wrap(socket, fn);
   }
 
   wrap(socket, fn) {
@@ -343,10 +354,21 @@ class GameManager {
     }
   }
 
-  onIdentify(socket, { role, token }) {
-    this.sockets.set(socket.id, { role, teamId: null });
+  onIdentify(socket, { role, token, adminKey }) {
+    if (role === 'admin') {
+      if (adminKey !== this.adminKey) {
+        this.sockets.set(socket.id, { role: null, teamId: null });
+        socket.emit('admin:authError', { message: 'Incorrect admin key.' });
+        socket.emit('state:update', this.getPublicState());
+        return;
+      }
+      this.sockets.set(socket.id, { role: 'admin', teamId: null });
+      socket.join('admins');
+      socket.emit('admin:authOk');
+    } else {
+      this.sockets.set(socket.id, { role, teamId: null });
+    }
 
-    if (role === 'admin') socket.join('admins');
     if (role === 'display') socket.join('displays');
 
     if (role === 'play') {
@@ -363,19 +385,22 @@ class GameManager {
   }
 
   // --- NEW STREAMLINED JOIN HANDLER ---
-  onPlayJoin(socket, { playerName, teamName }) {
+  onPlayJoin(socket, { playerName, teamName, password }) {
     try {
       playerName = String(playerName || '').trim();
       teamName = String(teamName || '').trim();
 
-      if (!playerName || !teamName) {
-        return socket.emit('play:joinError', 'Please enter both your name and team name.');
+      if (!playerName || !teamName || !password) {
+        return socket.emit('play:joinError', 'Please enter your name, team name, and team password.');
       }
 
       // Check if team exists in database (registered by admin)
       const team = this.getTeamByName(teamName);
       if (!team) {
         return socket.emit('play:joinError', `Team "${teamName}" does not exist. Please ask the Game Master to create it.`);
+      }
+      if (!verifyPassword(password, team.password_hash)) {
+        return socket.emit('play:joinError', 'Incorrect team password.');
       }
 
       // Create player record for this valid team

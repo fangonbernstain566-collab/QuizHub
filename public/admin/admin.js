@@ -1,5 +1,8 @@
 const socket = io();
 
+const ADMIN_KEY_STORAGE = 'quizhub_admin_key';
+let adminKey = localStorage.getItem(ADMIN_KEY_STORAGE) || '';
+
 const phaseBadge = document.getElementById('phaseBadge');
 const currentQuestionLabel = document.getElementById('currentQuestionLabel');
 const startAnsweringBtn = document.getElementById('startAnsweringBtn');
@@ -22,6 +25,7 @@ const scoringCard = document.getElementById('scoringCard');
 const scoringGrid = document.getElementById('scoringGrid');
 
 const newTeamName = document.getElementById('newTeamName');
+const newTeamPassword = document.getElementById('newTeamPassword');
 const addTeamBtn = document.getElementById('addTeamBtn');
 const teamsBody = document.getElementById('teamsBody');
 
@@ -42,7 +46,23 @@ function showToast(message, isError = false) {
   showToast._t = setTimeout(() => { toast.style.display = 'none'; }, 3000);
 }
 
-socket.on('connect', () => socket.emit('identify', { role: 'admin' }));
+function promptForAdminKey() {
+  adminKey = window.prompt('Enter the admin key shown in the server console:') || '';
+  localStorage.setItem(ADMIN_KEY_STORAGE, adminKey);
+  socket.emit('identify', { role: 'admin', adminKey });
+}
+
+socket.on('connect', () => {
+  if (!adminKey) return promptForAdminKey();
+  socket.emit('identify', { role: 'admin', adminKey });
+});
+
+socket.on('admin:authOk', () => showToast('Admin authenticated.'));
+socket.on('admin:authError', ({ message }) => {
+  showToast(message, true);
+  promptForAdminKey();
+});
+
 socket.on('error', ({ message }) => showToast(message, true));
 
 socket.on('state:update', (state) => {
@@ -54,9 +74,12 @@ socket.on('state:update', (state) => {
 
 addTeamBtn.onclick = () => {
   const name = newTeamName.value.trim();
-  if (!name) return;
-  socket.emit('admin:createTeam', { name });
+  const password = newTeamPassword.value.trim();
+  if (!name) return showToast('Enter a team name.');
+  if (!password) return showToast('Enter a password for the team.');
+  socket.emit('admin:createTeam', { name, password });
   newTeamName.value = '';
+  newTeamPassword.value = '';
 };
 
 // ---------------- Question bank ----------------

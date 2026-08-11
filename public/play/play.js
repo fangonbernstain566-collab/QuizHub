@@ -6,6 +6,7 @@ const joinScreen = document.getElementById('joinScreen');
 const gameScreen = document.getElementById('gameScreen');
 const playerName = document.getElementById('playerName');
 const teamNameInput = document.getElementById('teamName');
+const teamPasswordInput = document.getElementById('teamPassword');
 const joinBtn = document.getElementById('joinBtn');
 const myPlayerName = document.getElementById('myPlayerName');
 const myTeamName = document.getElementById('myTeamName');
@@ -46,12 +47,13 @@ socket.on('connect', connectIdentify);
 joinBtn.onclick = () => {
   const pName = playerName.value.trim();
   const tName = teamNameInput.value.trim();
+  const tPassword = teamPasswordInput.value;
 
-  if (!pName || !tName) {
-    return showToast('Please enter both your name and team name.');
+  if (!pName || !tName || !tPassword) {
+    return showToast('Please enter your name, team name, and team password.');
   }
 
-  socket.emit('play:join', { playerName: pName, teamName: tName });
+  socket.emit('play:join', { playerName: pName, teamName: tName, password: tPassword });
 };
 
 socket.on('play:joinError', (message) => {

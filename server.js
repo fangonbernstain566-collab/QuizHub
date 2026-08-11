@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
+const crypto = require('crypto');
 const { Server } = require('socket.io');
 
 const { initDb } = require('./src/db');
@@ -9,6 +11,23 @@ const { GameManager } = require('./src/gameState');
 const createApiRouter = require('./src/routes');
 
 const PORT = process.env.PORT || 3000;
+
+// The admin key stays the same across restarts (saved to a local, gitignored
+// file) so the game master doesn't have to re-enter it every time the server
+// is restarted mid-event. Set ADMIN_KEY yourself to override it.
+const ADMIN_KEY_FILE = path.join(__dirname, 'admin-key.local');
+let ADMIN_KEY = process.env.ADMIN_KEY;
+if (!ADMIN_KEY) {
+  try {
+    ADMIN_KEY = fs.readFileSync(ADMIN_KEY_FILE, 'utf8').trim();
+  } catch {
+    ADMIN_KEY = '';
+  }
+}
+if (!ADMIN_KEY) {
+  ADMIN_KEY = String(crypto.randomInt(100000, 999999));
+  fs.writeFileSync(ADMIN_KEY_FILE, ADMIN_KEY);
+}
 
 const db = initDb();
 const app = express();
@@ -32,7 +51,7 @@ const io = new Server(server, {
 });
 
 // Initialize game state manager
-const game = new GameManager(db, io);
+const game = new GameManager(db, io, ADMIN_KEY);
 app.use('/api', createApiRouter(db, game));
 
 // --- Socket.IO Event Handling ---
@@ -44,6 +63,9 @@ io.on('connection', (socket) => {
 // --- Start Server ---
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`QuizHub server running on port ${PORT}`);
+  console.log('');
+  console.log(`Admin key: ${ADMIN_KEY}`);
+  console.log('(Enter this once on the Admin page — anyone controlling the game needs it.)');
   console.log('');
   console.log('On this PC:');
   console.log(`  Admin:   http://localhost:${PORT}/admin`);
